@@ -1,0 +1,46 @@
+# =====================================================================
+# Hotel Cúcuta Frontend PMS - .gitignore
+# =====================================================================
+
+# Dependencias del proyecto
+node_modules/
+.pnp
+.pnp.js
+
+# Salidas de compilación y empaquetado
+dist/
+dist-ssr/
+*.local
+
+# Información de compilación incremental de TypeScript
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+
+# Variables de entorno con credenciales y URLs locales (Seguridad)
+.env
+.env*.local
+!.env.example
+
+# Archivos de registro y depuración (Logs)
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Configuraciones de editores e IDEs
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Archivos temporales del sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
