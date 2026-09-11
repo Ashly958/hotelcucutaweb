@@ -1,0 +1,1 @@
+aca son como pasos pendientes en desarrollo,  para no meter los procesos en reglas

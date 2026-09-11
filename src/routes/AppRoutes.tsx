@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from '@/modules/Login/pages/LoginPage';
 import { HabitacionesPage } from '@/modules/Habitaciones/pages/HabitacionesPage';
+import { OnboardingPage } from '@/modules/Onboarding/pages/OnboardingPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { MainLayout } from '@/layouts/MainLayout';
@@ -30,9 +31,11 @@ export function AppRoutes() {
         }
       />
 
-      {/* Redirección raíz a /dashboard */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      {/* Ruta Pública: Onboarding (Landing) */}
+      <Route path="/" element={<OnboardingPage />} />
+
+      {/* Ruta por defecto para URLs no encontradas */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

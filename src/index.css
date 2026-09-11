@@ -1,6 +1,23 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-brand-red: #C62026;
+  --color-brand-red-hover: #A8191E;
+  --color-brand-red-light: #FDF2F2;
+  --color-brand-red-dark: #8B1015;
+  --color-brand-black: #121316;
+  --color-brand-card-dark: #1A1C20;
+  --color-brand-gray-border: #E5E7EB;
+  --color-brand-cream: #FAF8F5;
+  --color-brand-gold: #C5A059;
+
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-script: "Alex Brush", cursive;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  --animate-fade-in: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
 
 /* Estilos tipográficos y utilidades del Brand Book Hotel Cúcuta */
 @layer base {
