@@ -1,5 +1,4 @@
-import { BrandBadge } from '@/components';
-import { LoginBanner } from '../components/LoginBanner';
+import logoHC from '@/assets/logotipo_hotel_cucuta.png';
 import { LoginForm } from '../components/LoginForm';
 import { useLogin } from '../hooks/useLogin';
 
@@ -7,29 +6,41 @@ export function LoginPage() {
   const { cargando, error, iniciarSesion, limpiarError } = useLogin();
 
   return (
-    <div className="h-screen max-h-screen w-full overflow-hidden flex flex-col lg:flex-row bg-[#FAF8F5] text-neutral-900 font-sans">
-      {/* Banner Izquierdo Limpio con Foto de Hotel y Logo Transparente */}
-      <LoginBanner />
-
-      {/* Panel Derecho de Formulario (El que le gustaba al usuario) */}
-      <div className="flex-1 h-full flex flex-col justify-between p-6 sm:p-8 xl:p-10 overflow-hidden">
-        {/* Cabecera Superior */}
-        <div className="flex items-center justify-between shrink-0">
-          <BrandBadge />
-          <div className="hidden sm:flex items-center gap-2 text-[10px] font-mono text-neutral-500 bg-white border border-neutral-200/80 px-2.5 py-1 rounded-full shadow-xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Sistema 24/7 Conectado</span>
+    <div className="h-screen max-h-screen w-full flex flex-col justify-between bg-[#F8FAFC] text-slate-800 font-sans px-4 py-3 sm:px-8 sm:py-5 overflow-hidden">
+      {/* Cabecera Superior Minimalista y Compacta */}
+      <header className="max-w-5xl w-full mx-auto flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="h-9 w-9 rounded-xl bg-white border border-slate-200/70 p-1 flex items-center justify-center shadow-soft-xs">
+            <img src={logoHC} alt="Hotel Cúcuta" className="h-full w-full object-contain" />
+          </div>
+          <div>
+            <span className="font-display font-bold text-sm sm:text-base tracking-tight text-slate-900 block leading-tight">
+              HOTEL CÚCUTA
+            </span>
+            <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium leading-none block">
+              Gestión Hotelera · 45 Habitaciones
+            </span>
           </div>
         </div>
 
-        {/* Bloque Central de Formulario */}
-        <div className="my-auto w-full">
-          <div className="max-w-sm mx-auto mb-4 text-center sm:text-left space-y-1">
-            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight">
-              Ingreso al Sistema
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 bg-white border border-slate-200/70 px-2.5 py-1 rounded-full shadow-soft-xs font-medium">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>Sistema PMS Activo</span>
+        </div>
+      </header>
+
+      {/* Tarjeta Central en Una Sola Vista (Sin Scroll) */}
+      <main className="w-full max-w-md mx-auto my-auto py-2">
+        <div className="bg-white border border-slate-200/70 rounded-3xl p-5 sm:p-6 shadow-soft-lg">
+          <div className="text-center mb-4 space-y-1">
+            <div className="inline-flex items-center justify-center p-2 rounded-xl bg-red-50 text-red-700 border border-red-100 shadow-soft-xs mb-1">
+              <img src={logoHC} alt="Logo" className="h-6 w-auto object-contain" />
+            </div>
+            <h1 className="font-display text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              Iniciar Sesión
             </h1>
-            <p className="text-xs text-neutral-500 font-light">
-              Panel de Control y Operación de Hotel Cúcuta
+            <p className="text-[11px] text-slate-500">
+              Seleccione un perfil de acceso rápido o ingrese sus credenciales
             </p>
           </div>
 
@@ -40,12 +51,12 @@ export function LoginPage() {
             onLimpiarError={limpiarError}
           />
         </div>
+      </main>
 
-        {/* Pie Discreto */}
-        <div className="shrink-0 pt-2 border-t border-neutral-200/60 text-center text-[10px] text-neutral-400">
-          <span>Hotel Cúcuta · Sistema PMS v1.0 · Cúcuta, Norte de Santander</span>
-        </div>
-      </div>
+      {/* Pie Discreto y Sereno */}
+      <footer className="w-full text-center text-[10px] sm:text-[11px] text-slate-400 font-medium shrink-0 pb-1">
+        Hotel Cúcuta · Sistema PMS v1.0 · Cúcuta, Norte de Santander
+      </footer>
     </div>
   );
 }

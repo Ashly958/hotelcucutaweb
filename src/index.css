@@ -1,48 +1,37 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
-  --color-brand-red: #C62026;
-  --color-brand-red-hover: #A8191E;
-  --color-brand-red-light: #FDF2F2;
-  --color-brand-red-dark: #8B1015;
-  --color-brand-black: #121316;
-  --color-brand-card-dark: #1A1C20;
-  --color-brand-gray-border: #E5E7EB;
-  --color-brand-cream: #FAF8F5;
-  --color-brand-gold: #C5A059;
-
-  --font-serif: "Playfair Display", Georgia, serif;
-  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
-  --font-script: "Alex Brush", cursive;
-  --font-mono: "JetBrains Mono", monospace;
-  
-  --animate-fade-in: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* Estilos tipográficos y utilidades del Brand Book Hotel Cúcuta */
 @layer base {
   body {
-    @apply bg-[#F8F9FA] text-[#1E293B] antialiased selection:bg-brand-red selection:text-white font-sans;
+    @apply bg-[#F8FAFC] text-slate-800 antialiased selection:bg-red-600 selection:text-white font-sans;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+    letter-spacing: -0.025em;
+    @apply text-slate-900;
   }
 }
 
-/* Custom Scrollbars */
+/* Custom Scrollbars Minimalistas y Suaves */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: #E2E8F0;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #CBD5E1;
 }
 
 @keyframes fadeIn {
@@ -57,5 +46,14 @@
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Utilidades de Diseño Limpio y Relajado */
+.card-clean {
+  @apply bg-white border border-slate-200/60 rounded-2xl shadow-soft;
+}
+
+.pill-active {
+  @apply bg-red-50 text-red-700 font-semibold border border-red-200/70 shadow-soft-xs;
 }

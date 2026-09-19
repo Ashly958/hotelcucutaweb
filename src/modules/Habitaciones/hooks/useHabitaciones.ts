@@ -12,8 +12,9 @@ export function useHabitaciones() {
   const [filtroEstado, setFiltroEstado] = useState<EstadoHabitacion | 'todos'>('todos');
   const [busqueda, setBusqueda] = useState<string>('');
 
-  // Modal de habitación seleccionada
+  // Modal de habitación seleccionada y creación
   const [habitacionSeleccionada, setHabitacionSeleccionada] = useState<Habitacion | null>(null);
+  const [modalCrearHabitacionAbierto, setModalCrearHabitacionAbierto] = useState<boolean>(false);
 
   const cargarHabitaciones = async () => {
     try {
@@ -81,6 +82,32 @@ export function useHabitaciones() {
     }
   };
 
+  const crearHabitacion = async (datos: import('../types/habitacion.types').CrearHabitacionDTO) => {
+    try {
+      const nueva = await habitacionesService.crear(datos);
+      setHabitaciones((prev) => [...prev, nueva]);
+      setModalCrearHabitacionAbierto(false);
+      return true;
+    } catch {
+      alert('Error al registrar la habitación.');
+      return false;
+    }
+  };
+
+  const eliminarHabitacion = async (habitacionId: string) => {
+    try {
+      await habitacionesService.eliminar(habitacionId);
+      setHabitaciones((prev) => prev.filter((h) => h.id !== habitacionId));
+      if (habitacionSeleccionada?.id === habitacionId) {
+        setHabitacionSeleccionada(null);
+      }
+      return true;
+    } catch {
+      alert('Error al eliminar la habitación.');
+      return false;
+    }
+  };
+
   const realizarCheckIn = async (datos: CheckInDTO) => {
     try {
       const habActualizada = await habitacionesService.registrarCheckIn(datos);
@@ -119,9 +146,14 @@ export function useHabitaciones() {
     setBusqueda,
     habitacionSeleccionada,
     setHabitacionSeleccionada,
+    modalCrearHabitacionAbierto,
+    setModalCrearHabitacionAbierto,
     cambiarEstado,
+    crearHabitacion,
+    eliminarHabitacion,
     realizarCheckIn,
     realizarCheckOut,
     recargar: cargarHabitaciones,
   };
 }
+

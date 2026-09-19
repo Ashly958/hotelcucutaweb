@@ -21,25 +21,25 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseEstilos =
-    'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed select-none active:scale-[0.98]';
+    'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98]';
 
   const variantes = {
     primary:
-      'bg-brand-red hover:bg-brand-redHover text-white shadow-lg shadow-brand-red/20 focus:ring-brand-red',
+      'bg-red-700 hover:bg-red-800 text-white shadow-soft-xs hover:shadow-soft focus:ring-red-600',
     secondary:
-      'bg-neutral-800 hover:bg-neutral-900 text-white shadow focus:ring-neutral-800',
+      'bg-slate-900 hover:bg-slate-800 text-white shadow-soft-xs focus:ring-slate-900',
     danger:
-      'bg-red-600 hover:bg-red-700 text-white shadow focus:ring-red-600',
+      'bg-rose-600 hover:bg-rose-700 text-white shadow-soft-xs focus:ring-rose-600',
     outline:
-      'border border-neutral-300 hover:bg-neutral-100 text-neutral-800 focus:ring-brand-red bg-white',
+      'border border-slate-200/80 hover:bg-slate-50 text-slate-700 focus:ring-slate-300 bg-white shadow-soft-xs',
     ghost:
-      'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 focus:ring-neutral-400',
+      'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 focus:ring-slate-200',
   };
 
   const tamanos = {
     sm: 'text-xs px-3 py-1.5 gap-1.5',
-    md: 'text-sm px-4 py-2.5 gap-2',
-    lg: 'text-base px-6 py-3.5 gap-2.5 font-semibold',
+    md: 'text-xs sm:text-sm px-4 py-2 gap-2',
+    lg: 'text-sm sm:text-base px-5 py-2.5 gap-2.5 font-bold',
   };
 
   return (

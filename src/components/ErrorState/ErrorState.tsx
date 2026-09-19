@@ -17,7 +17,7 @@ export function ErrorState({
       <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto text-brand-red">
         <AlertTriangle className="w-6 h-6" />
       </div>
-      <h3 className="font-serif font-bold text-neutral-900 text-base">{titulo}</h3>
+      <h3 className="font-display font-bold text-slate-900 text-base tracking-tight">{titulo}</h3>
       <p className="text-xs text-neutral-600 leading-relaxed">{mensaje}</p>
       {onReintentar && (
         <div className="pt-2">

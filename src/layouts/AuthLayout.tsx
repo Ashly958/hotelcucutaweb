@@ -8,5 +8,5 @@ interface AuthLayoutProps {
  * Layout minimalista para flujos públicos (Login, Recuperación de contraseña).
  */
 export function AuthLayout({ children }: AuthLayoutProps) {
-  return <div className="min-h-screen w-full bg-[#FAF8F5]">{children}</div>;
+  return <div className="min-h-screen w-full bg-white text-slate-900">{children}</div>;
 }

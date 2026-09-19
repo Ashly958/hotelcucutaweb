@@ -25,25 +25,25 @@ export function CredencialesDemoCard({ onSeleccionarCredencial }: CredencialesDe
       rol: 'RECEPCION',
       label: 'Recepción',
       sublabel: 'C. Mendoza',
-      icon: <IconoRecepcion size={15} />,
+      icon: <IconoRecepcion size={14} />,
     },
     {
       rol: 'ADMIN',
       label: 'Gerencia',
       sublabel: 'P. Ramírez',
-      icon: <IconoAdmin size={15} />,
+      icon: <IconoAdmin size={14} />,
     },
     {
       rol: 'LAVANDERIA',
       label: 'Lavandería',
       sublabel: 'Piso 5',
-      icon: <IconoLavanderia size={15} />,
+      icon: <IconoLavanderia size={14} />,
     },
     {
       rol: 'MANTENIMIENTO',
       label: 'Mantenimiento',
       sublabel: 'Equipos',
-      icon: <IconoMantenimiento size={15} />,
+      icon: <IconoMantenimiento size={14} />,
     },
   ];
 
@@ -60,12 +60,12 @@ export function CredencialesDemoCard({ onSeleccionarCredencial }: CredencialesDe
   };
 
   return (
-    <div className="mt-4 pt-3.5 border-t border-neutral-200/80">
+    <div className="mt-3.5 pt-3 border-t border-slate-100">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider font-mono">
-          Probar Rol con 1 Clic (RF-023):
+        <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+          Perfiles de Acceso Rápido:
         </span>
-        <span className="text-[9px] text-neutral-400 font-mono">Mock Auth</span>
+        <span className="text-[10px] text-slate-400 font-medium">1 Clic para seleccionar</span>
       </div>
 
       <div className="grid grid-cols-4 gap-1.5">
@@ -77,22 +77,22 @@ export function CredencialesDemoCard({ onSeleccionarCredencial }: CredencialesDe
               type="button"
               onClick={() => handleSeleccionar(item.rol)}
               className={`
-                py-2 px-1 rounded-xl text-[11px] font-medium border transition-all duration-150 flex flex-col items-center justify-center gap-1
+                py-1.5 px-1 rounded-xl text-[11px] font-medium border transition-all duration-150 flex flex-col items-center justify-center gap-0.5
                 ${
                   estaActivo
-                    ? 'bg-neutral-900 text-white border-neutral-900 shadow-sm'
-                    : 'bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300'
+                    ? 'bg-red-50/90 text-red-700 border-red-300 shadow-soft-xs font-semibold ring-1 ring-red-200'
+                    : 'bg-slate-50/60 text-slate-600 border-slate-200/70 hover:bg-slate-100/80 hover:border-slate-300'
                 }
               `}
             >
-              <span className={estaActivo ? 'text-brand-gold' : 'text-neutral-500'}>
+              <span className={estaActivo ? 'text-red-700' : 'text-slate-500'}>
                 {item.icon}
               </span>
-              <span className="font-semibold leading-none">{item.label}</span>
+              <span className="leading-tight text-[11px] font-medium">{item.label}</span>
               <span
                 className={`text-[9px] ${
-                  estaActivo ? 'text-neutral-300' : 'text-neutral-400'
-                } font-mono leading-none`}
+                  estaActivo ? 'text-red-600 font-medium' : 'text-slate-400'
+                } leading-none`}
               >
                 {item.sublabel}
               </span>

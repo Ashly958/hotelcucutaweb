@@ -89,12 +89,12 @@ export function LavanderiaWorkspace() {
     <div className="space-y-6">
       {/* Tarjetas de Métricas de Lavandería */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-soft flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 block mb-1">
               Centro Operativo
             </span>
-            <div className="text-lg font-bold font-serif text-slate-900">
+            <div className="text-lg font-bold font-display text-slate-900 tracking-tight">
               Piso 5 Exclusivo
             </div>
             <span className="text-[10px] text-slate-400">Regla RN-005</span>
@@ -104,12 +104,12 @@ export function LavanderiaWorkspace() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-soft flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 block mb-1">
               Tarifa por Prenda
             </span>
-            <div className="text-2xl font-bold font-serif text-slate-900">
+            <div className="text-2xl font-bold font-display text-slate-900 tracking-tight">
               $6.000 COP
             </div>
             <span className="text-[10px] text-slate-400">Cargo a folio (RF-010)</span>
@@ -119,12 +119,12 @@ export function LavanderiaWorkspace() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-soft flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 block mb-1">
               Prendas Gestionadas
             </span>
-            <div className="text-2xl font-bold font-serif text-blue-600">
+            <div className="text-2xl font-bold font-display text-blue-600 tracking-tight">
               {totalPrendasHoy}
             </div>
             <span className="text-[10px] text-slate-400">En la jornada de hoy</span>
@@ -134,12 +134,12 @@ export function LavanderiaWorkspace() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-soft flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 block mb-1">
               Total Facturado
             </span>
-            <div className="text-2xl font-bold font-serif text-emerald-600">
+            <div className="text-2xl font-bold font-display text-emerald-600 tracking-tight">
               ${totalFacturadoHoy.toLocaleString('es-CO')}
             </div>
             <span className="text-[10px] text-slate-400">Sumado a cuentas de huésped</span>
@@ -153,9 +153,9 @@ export function LavanderiaWorkspace() {
       {/* Cuerpo Operativo: Formulario de Nueva Carga y Lista de Órdenes */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Formulario Nueva Carga */}
-        <div className="bg-white rounded-2xl border border-slate-200/70 p-6 shadow-xs space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200/70 p-6 shadow-soft space-y-4">
           <div className="border-b border-slate-100 pb-3">
-            <h3 className="font-serif font-bold text-base text-slate-900">
+            <h3 className="font-display font-bold text-base text-slate-900 tracking-tight">
               Registrar Nueva Ropa
             </h3>
             <p className="text-xs text-slate-500">
@@ -171,11 +171,11 @@ export function LavanderiaWorkspace() {
               <select
                 value={formHabitacion}
                 onChange={(e) => setFormHabitacion(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-200/80 rounded-xl outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 shadow-2xs transition-colors"
               >
                 {['01', '04', '08', '12', '15', '22', '28', '33', '41'].map((num) => (
                   <option key={num} value={num}>
-                    Habitación {num} (Piso {parseInt(num) <= 11 ? 1 : parseInt(num) <= 23 ? 2 : 3})
+                    Habitación {num} (Piso {parseInt(num) <= 21 ? 1 : parseInt(num) <= 29 ? 2 : 3})
                   </option>
                 ))}
               </select>
@@ -191,7 +191,7 @@ export function LavanderiaWorkspace() {
                 max="50"
                 value={formPrendas}
                 onChange={(e) => setFormPrendas(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-200/80 rounded-xl outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 shadow-2xs transition-colors"
               />
             </div>
 
@@ -204,20 +204,20 @@ export function LavanderiaWorkspace() {
                 placeholder="Ej. 2 camisas, 1 pantalón"
                 value={formDescripcion}
                 onChange={(e) => setFormDescripcion(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-200/80 rounded-xl outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 shadow-2xs transition-colors"
               />
             </div>
 
-            <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-100 flex items-center justify-between text-xs">
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between text-xs">
               <span className="text-slate-600">Total a Cargar:</span>
-              <span className="font-bold text-blue-700 font-serif text-sm">
+              <span className="font-bold text-red-600 font-mono text-sm">
                 ${(formPrendas * TARIFA_PRENDA).toLocaleString('es-CO')} COP
               </span>
             </div>
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors inline-flex items-center justify-center gap-1.5 shadow-xs"
+              className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-medium transition-colors inline-flex items-center justify-center gap-1.5 shadow-xs"
             >
               <Plus className="w-4 h-4" />
               <span>Ingresar a Lavandería</span>
@@ -226,10 +226,10 @@ export function LavanderiaWorkspace() {
         </div>
 
         {/* Órdenes Activas en Piso 5 */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/70 p-6 shadow-xs space-y-4">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/70 p-6 shadow-soft space-y-4">
           <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
             <div>
-              <h3 className="font-serif font-bold text-base text-slate-900">
+              <h3 className="font-display font-bold text-base text-slate-900 tracking-tight">
                 Órdenes en Planta de Lavado
               </h3>
               <p className="text-xs text-slate-500">
@@ -257,7 +257,7 @@ export function LavanderiaWorkspace() {
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-serif font-bold text-sm text-slate-900">
+                      <span className="font-display font-bold text-sm text-slate-900">
                         Habitación {orden.habitacion}
                       </span>
                       <span className="text-xs text-slate-500">· {orden.huesped}</span>
@@ -271,13 +271,13 @@ export function LavanderiaWorkspace() {
                   </div>
 
                   <div className="flex items-center gap-3 self-end sm:self-center">
-                    <span className="font-bold text-xs text-slate-800 font-serif">
+                    <span className="font-bold text-xs text-slate-800 font-display">
                       ${orden.total.toLocaleString('es-CO')}
                     </span>
                     {orden.estado !== 'ENTREGADO' && (
                       <button
                         onClick={() => handleAvanzarEstado(orden.id)}
-                        className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium transition-colors"
+                        className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium transition-colors shadow-soft-xs"
                       >
                         {orden.estado === 'RECIBIDO'
                           ? 'Iniciar Lavado'

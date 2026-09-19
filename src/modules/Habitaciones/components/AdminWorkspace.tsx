@@ -103,13 +103,13 @@ export function AdminWorkspace({ metricas }: AdminWorkspaceProps) {
     <div className="space-y-6">
       {/* Resumen Ejecutivo */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-soft flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 block mb-1">
               Ocupación Total
             </span>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold font-serif text-slate-900">
+              <span className="text-2xl font-bold font-display text-slate-900 tracking-tight">
                 {metricas.porcentaje}%
               </span>
               <span className="text-xs text-slate-400">45 Habitaciones</span>
@@ -120,13 +120,13 @@ export function AdminWorkspace({ metricas }: AdminWorkspaceProps) {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-soft flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 block mb-1">
               Ingresos del Día
             </span>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold font-serif text-emerald-600">
+              <span className="text-2xl font-bold font-display text-emerald-600 tracking-tight">
                 ${(2240000).toLocaleString('es-CO')}
               </span>
               <span className="text-xs text-slate-400">COP</span>
@@ -137,13 +137,13 @@ export function AdminWorkspace({ metricas }: AdminWorkspaceProps) {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-soft flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 block mb-1">
               Auditoría de Turnos
             </span>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold font-serif text-slate-900">
+              <span className="text-2xl font-bold font-display text-slate-900 tracking-tight">
                 Al Día
               </span>
               <span className="text-xs text-slate-400">Caja cerrada 06:00</span>
@@ -154,13 +154,13 @@ export function AdminWorkspace({ metricas }: AdminWorkspaceProps) {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-soft flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 block mb-1">
               Políticas de Precio
             </span>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold font-serif text-amber-600">
+              <span className="text-2xl font-bold font-display text-amber-600 tracking-tight">
                 Inmutables
               </span>
               <span className="text-xs text-slate-400">RN-011</span>
@@ -210,10 +210,10 @@ export function AdminWorkspace({ metricas }: AdminWorkspaceProps) {
 
       {/* TAB 1: Reporte SIRE & Policía Nacional */}
       {tabAdmin === 'sire' && (
-        <div className="bg-white rounded-2xl border border-slate-200/70 p-6 shadow-xs space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200/70 p-6 shadow-soft space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
             <div>
-              <h3 className="font-serif font-bold text-base text-slate-900">
+              <h3 className="font-display font-bold text-base text-slate-900 tracking-tight">
                 Libro de Huéspedes para Autoridades (SIRE / Policía Nacional)
               </h3>
               <p className="text-xs text-slate-500">
@@ -224,14 +224,14 @@ export function AdminWorkspace({ metricas }: AdminWorkspaceProps) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => alert('Exportando archivo CSV formal para Migración Colombia (SIRE)...')}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium transition-colors"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium transition-colors shadow-soft-xs"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Exportar SIRE</span>
               </button>
               <button
                 onClick={() => alert('Generando plantilla oficial para la Policía Nacional...')}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-medium transition-colors"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-medium transition-colors shadow-soft-xs"
               >
                 <IconoDocumentoRegistro size={14} />
                 <span>Policía Nacional</span>
@@ -255,7 +255,7 @@ export function AdminWorkspace({ metricas }: AdminWorkspaceProps) {
               <tbody className="divide-y divide-slate-100">
                 {huespedesSire.map((h) => (
                   <tr key={h.id} className="hover:bg-slate-50/50">
-                    <td className="py-2.5 px-3 font-serif font-bold text-slate-900">{h.habitacion}</td>
+                    <td className="py-2.5 px-3 font-display font-bold text-slate-900">{h.habitacion}</td>
                     <td className="py-2.5 px-3 font-medium text-slate-800">{h.nombre}</td>
                     <td className="py-2.5 px-3 font-mono text-slate-600">{h.tipoDoc} {h.documento}</td>
                     <td className="py-2.5 px-3 text-slate-600">{h.nacionalidad}</td>
@@ -272,9 +272,9 @@ export function AdminWorkspace({ metricas }: AdminWorkspaceProps) {
 
       {/* TAB 2: Control de Usuarios & Roles */}
       {tabAdmin === 'usuarios' && (
-        <div className="bg-white rounded-2xl border border-slate-200/70 p-6 shadow-xs space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200/70 p-6 shadow-soft space-y-4">
           <div className="border-b border-slate-100 pb-3">
-            <h3 className="font-serif font-bold text-base text-slate-900">
+            <h3 className="font-display font-bold text-base text-slate-900 tracking-tight">
               Personal Autorizado y Delimitación de Roles (RF-023)
             </h3>
             <p className="text-xs text-slate-500">
@@ -307,9 +307,9 @@ export function AdminWorkspace({ metricas }: AdminWorkspaceProps) {
 
       {/* TAB 3: Políticas de Precios Fijas */}
       {tabAdmin === 'tarifas' && (
-        <div className="bg-white rounded-2xl border border-slate-200/70 p-6 shadow-xs space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200/70 p-6 shadow-soft space-y-4">
           <div className="border-b border-slate-100 pb-3">
-            <h3 className="font-serif font-bold text-base text-slate-900">
+            <h3 className="font-display font-bold text-base text-slate-900 tracking-tight">
               Política de Precios Inmutables (RN-011)
             </h3>
             <p className="text-xs text-slate-500">
@@ -320,19 +320,19 @@ export function AdminWorkspace({ metricas }: AdminWorkspaceProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
               <span className="text-xs text-slate-500">Habitaciones con Ventilador</span>
-              <div className="text-xl font-bold font-serif text-slate-900">$60.000 COP</div>
+              <div className="text-xl font-bold font-display text-slate-900 tracking-tight">$60.000 COP</div>
               <p className="text-[10px] text-slate-400">Por noche · Pisos 1 al 4</p>
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
               <span className="text-xs text-slate-500">Habitaciones con Aire Acondicionado</span>
-              <div className="text-xl font-bold font-serif text-slate-900">$80.000 COP</div>
+              <div className="text-xl font-bold font-display text-slate-900 tracking-tight">$80.000 COP</div>
               <p className="text-[10px] text-slate-400">Por noche · Pisos 1 al 4</p>
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
               <span className="text-xs text-slate-500">Servicio de Lavandería</span>
-              <div className="text-xl font-bold font-serif text-slate-900">$6.000 COP</div>
+              <div className="text-xl font-bold font-display text-slate-900 tracking-tight">$6.000 COP</div>
               <p className="text-[10px] text-slate-400">Por prenda · Piso 5 (RF-010)</p>
             </div>
           </div>

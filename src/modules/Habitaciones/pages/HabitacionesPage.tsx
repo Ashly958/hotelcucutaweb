@@ -2,11 +2,10 @@ import { useAppSelector } from '@/store/hooks';
 import { selectUsuario } from '@/store/selectors/authSelectors';
 import { useHabitaciones } from '../hooks/useHabitaciones';
 import { RecepcionWorkspace } from '../components/RecepcionWorkspace';
-import { AdminWorkspace } from '../components/AdminWorkspace';
 import { LavanderiaWorkspace } from '../components/LavanderiaWorkspace';
 import { MantenimientoWorkspace } from '../components/MantenimientoWorkspace';
+import { CrearHabitacionModal } from '../components/CrearHabitacionModal';
 import { Loading, ErrorState } from '@/components';
-
 
 export function HabitacionesPage() {
   const usuario = useAppSelector(selectUsuario);
@@ -25,7 +24,10 @@ export function HabitacionesPage() {
     setBusqueda,
     habitacionSeleccionada,
     setHabitacionSeleccionada,
+    modalCrearHabitacionAbierto,
+    setModalCrearHabitacionAbierto,
     cambiarEstado,
+    crearHabitacion,
     realizarCheckIn,
     realizarCheckOut,
     recargar,
@@ -39,11 +41,6 @@ export function HabitacionesPage() {
     return <ErrorState mensaje={error} onReintentar={recargar} />;
   }
 
-  // CADA ROL TIENE SU ESPACIO DE TRABAJO 100% INDEPENDIENTE (Sin posibilidad de moverse entre roles)
-  if (usuario?.rol === 'ADMIN') {
-    return <AdminWorkspace metricas={metricas} />;
-  }
-
   if (usuario?.rol === 'LAVANDERIA') {
     return <LavanderiaWorkspace />;
   }
@@ -52,23 +49,33 @@ export function HabitacionesPage() {
     return <MantenimientoWorkspace />;
   }
 
-  // Por defecto: Recepción & Front Desk
+  // Recepción & Administrador General (Control completo del Rack de Habitaciones)
   return (
-    <RecepcionWorkspace
-      habitaciones={habitaciones}
-      todasLasHabitaciones={todasLasHabitaciones}
-      metricas={metricas}
-      filtroPiso={filtroPiso}
-      setFiltroPiso={setFiltroPiso}
-      filtroEstado={filtroEstado}
-      setFiltroEstado={setFiltroEstado}
-      busqueda={busqueda}
-      setBusqueda={setBusqueda}
-      habitacionSeleccionada={habitacionSeleccionada}
-      setHabitacionSeleccionada={setHabitacionSeleccionada}
-      cambiarEstado={cambiarEstado}
-      realizarCheckIn={realizarCheckIn}
-      realizarCheckOut={realizarCheckOut}
-    />
+    <>
+      <RecepcionWorkspace
+        habitaciones={habitaciones}
+        todasLasHabitaciones={todasLasHabitaciones}
+        metricas={metricas}
+        filtroPiso={filtroPiso}
+        setFiltroPiso={setFiltroPiso}
+        filtroEstado={filtroEstado}
+        setFiltroEstado={setFiltroEstado}
+        busqueda={busqueda}
+        setBusqueda={setBusqueda}
+        habitacionSeleccionada={habitacionSeleccionada}
+        setHabitacionSeleccionada={setHabitacionSeleccionada}
+        cambiarEstado={cambiarEstado}
+        realizarCheckIn={realizarCheckIn}
+        realizarCheckOut={realizarCheckOut}
+        onCrearHabitacion={() => setModalCrearHabitacionAbierto(true)}
+      />
+
+      <CrearHabitacionModal
+        isOpen={modalCrearHabitacionAbierto}
+        onClose={() => setModalCrearHabitacionAbierto(false)}
+        onSubmit={crearHabitacion}
+      />
+    </>
   );
 }
+

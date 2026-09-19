@@ -53,14 +53,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             type={tipoFinal}
             className={`
-              w-full text-sm rounded-xl border bg-white py-2.5 transition-colors duration-200 outline-none
-              placeholder:text-neutral-400
+              w-full text-xs sm:text-sm rounded-xl border bg-slate-50/40 focus:bg-white py-2.5 transition-all duration-150 outline-none
+              placeholder:text-slate-400
               ${iconoIzquierda ? 'pl-10' : 'pl-3.5'}
               ${esPassword && permitirTogglePassword ? 'pr-10' : 'pr-3.5'}
               ${
                 error
                   ? 'border-red-400 text-red-900 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                  : 'border-neutral-300 text-neutral-900 focus:border-brand-red focus:ring-2 focus:ring-brand-red/20'
+                  : 'border-slate-200/90 text-slate-800 focus:border-red-600 focus:ring-2 focus:ring-red-500/15'
               }
               ${className}
             `}

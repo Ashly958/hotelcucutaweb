@@ -72,12 +72,12 @@ export function MantenimientoWorkspace() {
     <div className="space-y-6">
       {/* Métricas de Mantenimiento */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-soft flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 block mb-1">
               Habitaciones Bloqueadas
             </span>
-            <div className="text-2xl font-bold font-serif text-rose-600">
+            <div className="text-2xl font-bold font-display text-rose-600 tracking-tight">
               {novedades.filter((n) => n.estado !== 'RESUELTO').length}
             </div>
             <span className="text-[10px] text-slate-400">Fuera de venta (RF-002)</span>
@@ -87,12 +87,12 @@ export function MantenimientoWorkspace() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-soft flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 block mb-1">
               Aires Acondicionados
             </span>
-            <div className="text-2xl font-bold font-serif text-slate-900">
+            <div className="text-2xl font-bold font-display text-slate-900 tracking-tight">
               25 Unidades
             </div>
             <span className="text-[10px] text-slate-400">24 operativos · 1 en taller</span>
@@ -102,12 +102,12 @@ export function MantenimientoWorkspace() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-soft flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 block mb-1">
               Ventiladores de Techo
             </span>
-            <div className="text-2xl font-bold font-serif text-slate-900">
+            <div className="text-2xl font-bold font-display text-slate-900 tracking-tight">
               20 Unidades
             </div>
             <span className="text-[10px] text-slate-400">100% operativos</span>
@@ -117,12 +117,12 @@ export function MantenimientoWorkspace() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-soft flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 block mb-1">
               Revisiones del Mes
             </span>
-            <div className="text-2xl font-bold font-serif text-emerald-600">
+            <div className="text-2xl font-bold font-display text-emerald-600 tracking-tight">
               14 Resueltas
             </div>
             <span className="text-[10px] text-slate-400">Historial técnico (RF-018)</span>
@@ -136,9 +136,9 @@ export function MantenimientoWorkspace() {
       {/* Grid: Formulario de Bloqueo y Lista de Novedades */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Formulario de Reporte Técnico */}
-        <div className="bg-white rounded-2xl border border-slate-200/70 p-6 shadow-xs space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200/70 p-6 shadow-soft space-y-4">
           <div className="border-b border-slate-100 pb-3">
-            <h3 className="font-serif font-bold text-base text-slate-900">
+            <h3 className="font-display font-bold text-base text-slate-900 tracking-tight">
               Reportar Mantenimiento
             </h3>
             <p className="text-xs text-slate-500">
@@ -154,7 +154,7 @@ export function MantenimientoWorkspace() {
               <select
                 value={formHabitacion}
                 onChange={(e) => setFormHabitacion(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-200/80 rounded-xl outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 shadow-2xs transition-colors"
               >
                 {Array.from({ length: 45 }, (_, i) => String(i + 1).padStart(2, '0')).map((n) => (
                   <option key={n} value={n}>
@@ -171,7 +171,7 @@ export function MantenimientoWorkspace() {
               <select
                 value={formEquipo}
                 onChange={(e) => setFormEquipo(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-200/80 rounded-xl outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 shadow-2xs transition-colors"
               >
                 <option value="Aire Acondicionado">Aire Acondicionado</option>
                 <option value="Ventilador de Techo">Ventilador de Techo</option>
@@ -189,7 +189,7 @@ export function MantenimientoWorkspace() {
               <select
                 value={formPrioridad}
                 onChange={(e) => setFormPrioridad(e.target.value as 'ALTA' | 'MEDIA' | 'BAJA')}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-200/80 rounded-xl outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 shadow-2xs transition-colors"
               >
                 <option value="ALTA">Alta (Bloqueo urgente)</option>
                 <option value="MEDIA">Media (Revisión del día)</option>
@@ -206,14 +206,14 @@ export function MantenimientoWorkspace() {
                 placeholder="Describa la falla detectada..."
                 value={formProblema}
                 onChange={(e) => setFormProblema(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-200/80 rounded-xl outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 shadow-2xs transition-colors"
                 required
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium transition-colors inline-flex items-center justify-center gap-1.5 shadow-xs"
+              className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-medium transition-colors inline-flex items-center justify-center gap-1.5 shadow-xs"
             >
               <Wrench className="w-4 h-4" />
               <span>Bloquear y Registrar Novedad</span>
@@ -222,10 +222,10 @@ export function MantenimientoWorkspace() {
         </div>
 
         {/* Listado de Novedades y Órdenes de Mantenimiento */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/70 p-6 shadow-xs space-y-4">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/70 p-6 shadow-soft space-y-4">
           <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
             <div>
-              <h3 className="font-serif font-bold text-base text-slate-900">
+              <h3 className="font-display font-bold text-base text-slate-900 tracking-tight">
                 Historial y Órdenes de Reparación
               </h3>
               <p className="text-xs text-slate-500">
@@ -252,7 +252,7 @@ export function MantenimientoWorkspace() {
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-serif font-bold text-sm text-slate-900">
+                      <span className="font-display font-bold text-sm text-slate-900">
                         Habitación {nov.habitacion}
                       </span>
                       <span className="text-xs text-slate-600">· {nov.equipo}</span>

@@ -1,6 +1,13 @@
 import { api } from '@/services/api';
 import type { RespuestaApi } from '@/types/api';
-import type { Habitacion, CheckInDTO, EstadoHabitacion } from '../types/habitacion.types';
+import type {
+  Habitacion,
+  CheckInDTO,
+  EstadoHabitacion,
+  CrearHabitacionDTO,
+  ActualizarHabitacionDTO,
+} from '../types/habitacion.types';
+
 
 /**
  * Base de datos Mock de las 45 habitaciones del Hotel Cúcuta (Pisos 1 a 4)
@@ -100,25 +107,155 @@ const HABITACIONES_INICIALES: Habitacion[] = [
   { id: '45', numero: '45', piso: 4, tipo: 'Estándar', camas: '2 camas', capacidadMax: 3, tieneAire: true, tieneVentilador: false, precioNoche: 75000, estado: 'disponible' },
 ];
 
+function deducirTipoHabitacion(item: any): import('../types/habitacion.types').TipoHabitacion {
+  if (item.tipo) return item.tipo;
+  const detalle = String(item.detalleCamas || item.detalle_camas || '').toLowerCase();
+  const cap = Number(item.capacidadMaxima || item.capacidad_maxima || 2);
+  if (detalle.includes('matrimonial')) return 'Matrimonial';
+  if (detalle.includes('familiar') || cap >= 4) return 'Familiar';
+  if (detalle.includes('sencilla') || cap === 1) return 'Individual';
+  return 'Estándar';
+}
+
+function mapearHabitacionDesdeApi(item: any): Habitacion {
+  return {
+    id: String(item.id),
+    numero: String(item.numero),
+    piso: Number(item.pisoId ?? item.piso_id ?? item.piso ?? 1),
+    tipo: deducirTipoHabitacion(item),
+    camas: String(item.detalleCamas ?? item.detalle_camas ?? item.camas ?? '1 Cama Doble'),
+    capacidadMax: Number(item.capacidadMaxima ?? item.capacidad_maxima ?? item.capacidadMax ?? 2),
+    tieneAire: Boolean(item.tieneAire ?? item.tiene_aire),
+    tieneVentilador: Boolean(item.tieneVentilador ?? item.tiene_ventilador),
+    precioNoche: Number(item.precioNocheBase ?? item.precio_noche_base ?? item.precioNoche ?? 50000),
+    estado: (item.estado ?? 'disponible') as EstadoHabitacion,
+    observaciones: item.observaciones ?? undefined,
+    huesped: item.huesped ?? null,
+    estadiaId: item.estadiaId ?? item.estadia_id ?? item.huesped?.estadiaId ?? undefined,
+  };
+}
+
 let memoriaHabitaciones = [...HABITACIONES_INICIALES];
 
 export const habitacionesService = {
   async obtenerTodas(): Promise<Habitacion[]> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((resolve) => setTimeout(resolve, 200));
       return [...memoriaHabitaciones];
     }
-    const respuesta = await api.get<RespuestaApi<Habitacion[]>>('/v1/habitaciones');
-    return respuesta.data.data;
+
+    try {
+      const respuesta = await api.get<RespuestaApi<any[]>>('/habitaciones');
+      if (Array.isArray(respuesta.data.data) && respuesta.data.data.length > 0) {
+        return respuesta.data.data.map(mapearHabitacionDesdeApi);
+      }
+      return [...memoriaHabitaciones];
+    } catch {
+      return [...memoriaHabitaciones];
+    }
+  },
+
+  async obtenerPorId(id: string): Promise<Habitacion> {
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
+    if (usarMock) {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      const hab = memoriaHabitaciones.find((h) => h.id === id || h.numero === id);
+      if (!hab) throw new Error('Habitación no encontrada');
+      return hab;
+    }
+
+    try {
+      const respuesta = await api.get<RespuestaApi<any>>(`/habitaciones/${id}`);
+      return mapearHabitacionDesdeApi(respuesta.data.data);
+    } catch {
+      const hab = memoriaHabitaciones.find((h) => h.id === id || h.numero === id);
+      if (!hab) throw new Error('Habitación no encontrada');
+      return hab;
+    }
+  },
+
+  async crear(datos: CrearHabitacionDTO): Promise<Habitacion> {
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
+    if (usarMock) {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      const nuevaHab: Habitacion = {
+        id: String(Date.now()),
+        numero: datos.numero,
+        piso: datos.piso,
+        tipo: datos.tipo,
+        camas: datos.camas,
+        capacidadMax: datos.capacidadMax,
+        tieneAire: datos.tieneAire,
+        tieneVentilador: datos.tieneVentilador,
+        precioNoche: datos.precioNoche,
+        estado: 'disponible',
+        observaciones: datos.observaciones,
+      };
+      memoriaHabitaciones = [...memoriaHabitaciones, nuevaHab];
+      return nuevaHab;
+    }
+
+    const payload = {
+      piso_id: datos.piso,
+      numero: datos.numero,
+      capacidad_maxima: datos.capacidadMax,
+      tiene_aire: datos.tieneAire,
+      tiene_ventilador: datos.tieneVentilador,
+      detalle_camas: datos.camas,
+      precio_noche_base: datos.precioNoche,
+      estado: 'disponible',
+      observaciones: datos.observaciones || null,
+    };
+
+    const respuesta = await api.post<RespuestaApi<any>>('/habitaciones', payload);
+    return mapearHabitacionDesdeApi(respuesta.data.data);
+  },
+
+  async actualizar(id: string, datos: ActualizarHabitacionDTO): Promise<Habitacion> {
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
+    if (usarMock) {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      memoriaHabitaciones = memoriaHabitaciones.map((h) =>
+        h.id === id ? { ...h, ...datos } : h
+      );
+      const hab = memoriaHabitaciones.find((h) => h.id === id);
+      if (!hab) throw new Error('Habitación no encontrada');
+      return hab;
+    }
+
+    const payload: Record<string, any> = {};
+    if (datos.piso !== undefined) payload.piso_id = datos.piso;
+    if (datos.numero !== undefined) payload.numero = datos.numero;
+    if (datos.capacidadMax !== undefined) payload.capacidad_maxima = datos.capacidadMax;
+    if (datos.tieneAire !== undefined) payload.tiene_aire = datos.tieneAire;
+    if (datos.tieneVentilador !== undefined) payload.tiene_ventilador = datos.tieneVentilador;
+    if (datos.camas !== undefined) payload.detalle_camas = datos.camas;
+    if (datos.precioNoche !== undefined) payload.precio_noche_base = datos.precioNoche;
+    if (datos.estado !== undefined) payload.estado = datos.estado;
+    if (datos.observaciones !== undefined) payload.observaciones = datos.observaciones;
+
+    const respuesta = await api.put<RespuestaApi<any>>(`/habitaciones/${id}`, payload);
+    return mapearHabitacionDesdeApi(respuesta.data.data);
+  },
+
+  async eliminar(id: string): Promise<void> {
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
+    if (usarMock) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      memoriaHabitaciones = memoriaHabitaciones.filter((h) => h.id !== id);
+      return;
+    }
+
+    await api.delete<RespuestaApi<null>>(`/habitaciones/${id}`);
   },
 
   async cambiarEstado(habitacionId: string, nuevoEstado: EstadoHabitacion): Promise<Habitacion> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((resolve) => setTimeout(resolve, 250));
       memoriaHabitaciones = memoriaHabitaciones.map((h) => {
-        if (h.id === habitacionId) {
+        if (h.id === habitacionId || h.numero === habitacionId) {
           return {
             ...h,
             estado: nuevoEstado,
@@ -128,23 +265,23 @@ export const habitacionesService = {
         return h;
       });
 
-      const actualizada = memoriaHabitaciones.find((h) => h.id === habitacionId);
+      const actualizada = memoriaHabitaciones.find((h) => h.id === habitacionId || h.numero === habitacionId);
       if (!actualizada) throw new Error('Habitación no encontrada');
       return actualizada;
     }
 
-    const respuesta = await api.patch<RespuestaApi<Habitacion>>(
-      `/v1/habitaciones/${habitacionId}/estado`,
+    const respuesta = await api.patch<RespuestaApi<any>>(
+      `/habitaciones/${habitacionId}/estado`,
       { estado: nuevoEstado }
     );
-    return respuesta.data.data;
+    return mapearHabitacionDesdeApi(respuesta.data.data);
   },
 
   async registrarCheckIn(datos: CheckInDTO): Promise<Habitacion> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((resolve) => setTimeout(resolve, 350));
-      const hab = memoriaHabitaciones.find((h) => h.id === datos.habitacionId);
+      const hab = memoriaHabitaciones.find((h) => h.id === datos.habitacionId || h.numero === datos.habitacionId);
       if (!hab) throw new Error('Habitación no encontrada');
 
       const totalCosto = hab.precioNoche * datos.noches;
@@ -162,33 +299,63 @@ export const habitacionesService = {
           destino: datos.destino,
           pax: datos.pax,
           noches: datos.noches,
-          fechaIngreso: '10/09/2026',
+          fechaIngreso: new Date().toISOString().replace('T', ' ').substring(0, 19),
           saldoPendiente: saldo,
           abonoInicial: datos.abonoEfectivo,
         },
       };
 
       memoriaHabitaciones = memoriaHabitaciones.map((h) =>
-        h.id === datos.habitacionId ? habitacionActualizada : h
+        h.id === datos.habitacionId || h.numero === datos.habitacionId ? habitacionActualizada : h
       );
 
       return habitacionActualizada;
     }
 
-    const respuesta = await api.post<RespuestaApi<Habitacion>>('/v1/habitaciones/check-in', datos);
-    return respuesta.data.data;
+    // Separar nombre
+    const partes = datos.nombre.trim().split(' ');
+    const nombres = partes.length > 1 ? partes.slice(0, -1).join(' ') : datos.nombre.trim();
+    const apellidos = partes.length > 1 ? partes[partes.length - 1] : '.';
+
+    const habitacionIdNum = parseInt(datos.habitacionId, 10);
+    const habActual = await this.obtenerPorId(datos.habitacionId);
+    const valorHabitacion = habActual ? habActual.precioNoche : 70000;
+
+    const payload = {
+      habitacion_id: habitacionIdNum,
+      tipo_documento: datos.documentoTipo || 'CC',
+      numero_documento: datos.documentoNumero,
+      nombres,
+      apellidos,
+      telefono: datos.telefono,
+      ciudad_procedencia: datos.procedencia,
+      direccion: 'No registrada',
+      profesion: 'No registrada',
+      fecha_checkin: new Date().toISOString().substring(0, 10) + ' 14:00:00',
+      fecha_prevista_checkout: new Date(Date.now() + datos.noches * 86400000).toISOString().substring(0, 10) + ' 13:00:00',
+      dias_estadia: datos.noches,
+      valor_habitacion: valorHabitacion,
+      abono_inicial: datos.abonoEfectivo,
+      observaciones: `Registro Check-in rápido. Destino: ${datos.destino || 'Cúcuta'}. Pax: ${datos.pax}`,
+      acompanantes: datos.acompanantes || [],
+    };
+
+    await api.post<RespuestaApi<any>>('/check-in/manual', payload);
+    return this.obtenerPorId(datos.habitacionId);
   },
 
   async registrarCheckOut(habitacionId: string): Promise<Habitacion> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((resolve) => setTimeout(resolve, 300));
       return this.cambiarEstado(habitacionId, 'limpieza');
     }
 
-    const respuesta = await api.post<RespuestaApi<Habitacion>>(
-      `/v1/habitaciones/${habitacionId}/check-out`
-    );
-    return respuesta.data.data;
+    const hab = await this.obtenerPorId(habitacionId);
+    const targetId = hab.estadiaId ? hab.estadiaId : parseInt(habitacionId, 10);
+
+    await api.post<RespuestaApi<any>>(`/estadias/${targetId}/check-out`);
+    return this.obtenerPorId(habitacionId);
   },
 };
+
