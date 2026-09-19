@@ -225,7 +225,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               <div className="h-4 w-px bg-slate-200/80 mx-1.5" />
 
               <a
-                href="/guia"
+                href="/onboarding"
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:text-red-700 hover:bg-red-50/80 border border-transparent hover:border-red-200/60 transition-all"

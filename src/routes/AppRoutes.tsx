@@ -28,7 +28,7 @@ export function AppRoutes() {
 
       {/* Ruta Pública / Directa: Guía de Onboarding para Huéspedes */}
       <Route
-        path="/guia"
+        path="/onboarding"
         element={
           <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6">
             <div className="max-w-4xl mx-auto">
@@ -127,16 +127,6 @@ export function AppRoutes() {
         }
       />
 
-      <Route
-        path="/onboarding"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <OnboardingPage />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
 
       <Route
         path="/reportes"
@@ -149,9 +139,9 @@ export function AppRoutes() {
         }
       />
 
-      {/* Redirección raíz a /dashboard */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      {/* Redirección raíz a /onboarding */}
+      <Route path="/" element={<Navigate to="/onboarding" replace />} />
+      <Route path="*" element={<Navigate to="/onboarding" replace />} />
     </Routes>
   );
 }

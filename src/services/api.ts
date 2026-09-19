@@ -36,7 +36,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       store.dispatch(cerrarSesion());
-      if (window.location.pathname !== '/login') {
+      const rutasPublicas = ['/login', '/onboarding'];
+      if (!rutasPublicas.includes(window.location.pathname)) {
         window.location.href = '/login';
       }
     }

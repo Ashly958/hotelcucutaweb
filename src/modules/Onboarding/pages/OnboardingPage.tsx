@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Wifi,
   Wind,
@@ -26,6 +27,7 @@ import type { InformacionHotel } from '@/modules/InformacionHotel/types/informac
 import logoHC from '@/assets/logotipo_hotel_cucuta.png';
 
 export function OnboardingPage() {
+  const navigate = useNavigate();
   const [pisoSeleccionado, setPisoSeleccionado] = useState<number>(1);
   const [modalQrAbierto, setModalQrAbierto] = useState<boolean>(false);
   const [copiado, setCopiado] = useState<boolean>(false);
@@ -42,8 +44,8 @@ export function OnboardingPage() {
   };
 
   const urlGuiaPublica = typeof window !== 'undefined'
-    ? `${window.location.origin}/guia`
-    : 'http://localhost:5173/guia';
+    ? `${window.location.origin}/onboarding`
+    : 'http://localhost:5173/onboarding';
 
   const handleCopiarEnlace = () => {
     navigator.clipboard.writeText(urlGuiaPublica);
@@ -76,6 +78,15 @@ export function OnboardingPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="md"
+            onClick={() => navigate('/login')}
+            icono={<Shield className="w-4 h-4 text-slate-700" />}
+          >
+            Acceso Personal
+          </Button>
+
           <Button
             variant="outline"
             size="md"
