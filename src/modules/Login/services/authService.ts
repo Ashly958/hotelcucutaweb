@@ -89,8 +89,8 @@ export const authService = {
       const respuesta = await api.post<RespuestaApi<{ token: string; usuario?: any }>>(
         '/autenticacion/login',
         {
-          email: credenciales.email,
-          password: credenciales.password,
+          email: credenciales.email.trim().toLowerCase(),
+          password: credenciales.password.trim(),
         }
       );
 
@@ -104,23 +104,18 @@ export const authService = {
         tipoToken: 'Bearer',
       };
     } catch (err: any) {
-      // Si la API no está disponible (ej. backend offline o error de red) o es un usuario de acceso rápido/demo
       const esErrorConexion =
         !err.response ||
         err.code === 'ERR_NETWORK' ||
         err.code === 'ECONNABORTED' ||
         err.message?.includes('Network Error');
-      const emailLimpio = credenciales.email.trim().toLowerCase();
-      const esUsuarioDemo = USUARIOS_MOCK.some((u) => u.email.toLowerCase() === emailLimpio);
-
-      if (esErrorConexion || esUsuarioDemo) {
-        console.info('Iniciando sesión en modo resiliente de alta disponibilidad:', credenciales.email);
-        const respuestaMock = await simularLoginApi(credenciales);
-        return respuestaMock.data;
-      }
 
       const mensajeError =
-        err.response?.data?.message || err.message || 'Error al conectar con el servidor';
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        (esErrorConexion
+          ? 'No se pudo conectar con el servidor backend (http://localhost:8000/api). Asegúrese de que el servidor esté activo.'
+          : err.message || 'Error al autenticar con el servidor');
       throw new Error(mensajeError);
     }
   },

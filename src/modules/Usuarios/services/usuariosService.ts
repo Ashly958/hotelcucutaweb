@@ -47,7 +47,7 @@ let memoriaUsuarios: UsuarioSistema[] = [
 
 export const usuariosService = {
   async obtenerTodos(): Promise<UsuarioSistema[]> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((r) => setTimeout(r, 150));
       return [...memoriaUsuarios];
@@ -61,7 +61,7 @@ export const usuariosService = {
   },
 
   async crear(datos: GuardarUsuarioDTO): Promise<UsuarioSistema> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((r) => setTimeout(r, 200));
       const nuevo: UsuarioSistema = {
@@ -81,7 +81,7 @@ export const usuariosService = {
   },
 
   async actualizar(id: number, datos: GuardarUsuarioDTO): Promise<UsuarioSistema> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((r) => setTimeout(r, 200));
       memoriaUsuarios = memoriaUsuarios.map((u) =>
@@ -104,7 +104,7 @@ export const usuariosService = {
   },
 
   async alternarInactivar(id: number): Promise<void> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((r) => setTimeout(r, 150));
       memoriaUsuarios = memoriaUsuarios.map((u) =>
@@ -116,7 +116,7 @@ export const usuariosService = {
   },
 
   async eliminar(id: number): Promise<void> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((r) => setTimeout(r, 150));
       memoriaUsuarios = memoriaUsuarios.filter((u) => u.id !== id);
@@ -126,7 +126,7 @@ export const usuariosService = {
   },
 
   async cambiarClave(id: number, datos: CambiarClaveDTO): Promise<void> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((r) => setTimeout(r, 200));
       return;

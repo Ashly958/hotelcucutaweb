@@ -27,16 +27,7 @@ export function AppRoutes() {
       />
 
       {/* Ruta Pública / Directa: Guía de Onboarding para Huéspedes */}
-      <Route
-        path="/onboarding"
-        element={
-          <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6">
-            <div className="max-w-4xl mx-auto">
-              <OnboardingPage />
-            </div>
-          </div>
-        }
-      />
+      <Route path="/onboarding" element={<OnboardingPage />} />
 
       {/* Rutas Protegidas en MainLayout */}
       <Route

@@ -40,7 +40,7 @@ export function LoginPage() {
               Iniciar Sesión
             </h1>
             <p className="text-[11px] text-slate-500">
-              Seleccione un perfil de acceso rápido o ingrese sus credenciales
+              Ingrese sus credenciales para acceder al sistema PMS
             </p>
           </div>
 

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 import { Input, Button } from '@/components';
 
-import { CredencialesDemoCard } from './CredencialesDemoCard';
 import type { CredencialesDTO } from '../types/auth.types';
 
 interface LoginFormProps {
@@ -13,8 +12,8 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onSubmit, cargando, error, onLimpiarError }: LoginFormProps) {
-  const [email, setEmail] = useState('recepcion@hotelcucuta.com');
-  const [password, setPassword] = useState('Password123!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [recordarSesion, setRecordarSesion] = useState(true);
   const [erroresCampos, setErroresCampos] = useState<{ email?: string; password?: string }>({});
 
@@ -44,18 +43,21 @@ export function LoginForm({ onSubmit, cargando, error, onLimpiarError }: LoginFo
     }
 
     await onSubmit({
-      email: email.trim(),
-      password,
+      email: email.trim().toLowerCase(),
+      password: password.trim(),
       recordarSesion,
     });
   };
 
-  const handleSeleccionarDemo = (credenciales: CredencialesDTO) => {
-    setEmail(credenciales.email);
-    setPassword(credenciales.password);
-    setRecordarSesion(credenciales.recordarSesion ?? true);
-    setErroresCampos({});
-    onLimpiarError();
+  const formatearMensajeError = (msg: string) => {
+    if (msg.toLowerCase().includes('inválid') || msg.toLowerCase().includes('invalid')) {
+      return (
+        <span>
+          <strong>Credenciales incorrectas.</strong> La contraseña en la base de datos es sensible a mayúsculas: use <code className="font-mono bg-red-100 px-1 rounded text-red-900 font-bold">Password123!</code> (con 'P' mayúscula y signo de exclamación al final).
+        </span>
+      );
+    }
+    return msg;
   };
 
   return (
@@ -64,10 +66,10 @@ export function LoginForm({ onSubmit, cargando, error, onLimpiarError }: LoginFo
       {error && (
         <div
           role="alert"
-          className="mb-2 p-2 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800 flex items-start gap-2 animate-fadeIn"
+          className="mb-2 p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800 flex items-start gap-2 animate-fadeIn"
         >
           <AlertCircle className="w-4 h-4 text-brand-red shrink-0 mt-0.5" />
-          <p className="leading-snug text-[11px]">{error}</p>
+          <p className="leading-snug text-[11px]">{formatearMensajeError(error)}</p>
         </div>
       )}
 
@@ -146,10 +148,26 @@ export function LoginForm({ onSubmit, cargando, error, onLimpiarError }: LoginFo
             Ingresar al PMS
           </Button>
         </div>
-      </form>
 
-      {/* Selector de Roles Compacto con Iconos Personalizados */}
-      <CredencialesDemoCard onSeleccionarCredencial={handleSeleccionarDemo} />
+        {/* Referencia discreta para pruebas con la API Real */}
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+          <span>
+            API Real: <strong className="text-slate-600 font-mono">admin@hotelcucuta.com</strong>
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setEmail('admin@hotelcucuta.com');
+              setPassword('Password123!');
+              setErroresCampos({});
+              onLimpiarError();
+            }}
+            className="text-red-700 hover:text-red-800 font-medium underline"
+          >
+            Pegar datos Admin
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

@@ -148,7 +148,7 @@ let movimientosMemoria: Movimiento[] = [
 
 export const inventariosService = {
   async obtenerCategorias(): Promise<Categoria[]> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((r) => setTimeout(r, 150));
       return [...categoriasMemoria];
@@ -162,7 +162,7 @@ export const inventariosService = {
   },
 
   async crearCategoria(datos: GuardarCategoriaDTO): Promise<Categoria> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((r) => setTimeout(r, 200));
       const nueva: Categoria = {
@@ -178,7 +178,7 @@ export const inventariosService = {
   },
 
   async actualizarCategoria(id: number, datos: GuardarCategoriaDTO): Promise<Categoria> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((r) => setTimeout(r, 200));
       categoriasMemoria = categoriasMemoria.map((c) =>
@@ -191,7 +191,7 @@ export const inventariosService = {
   },
 
   async eliminarCategoria(id: number): Promise<void> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((r) => setTimeout(r, 200));
       categoriasMemoria = categoriasMemoria.filter((c) => c.id !== id);
@@ -201,7 +201,7 @@ export const inventariosService = {
   },
 
   async obtenerProductos(): Promise<Producto[]> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((r) => setTimeout(r, 200));
       return [...productosMemoria];
@@ -215,7 +215,7 @@ export const inventariosService = {
   },
 
   async crearProducto(datos: GuardarProductoDTO): Promise<Producto> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((r) => setTimeout(r, 250));
       const cat = categoriasMemoria.find((c) => c.id === datos.categoriaId);
@@ -244,7 +244,7 @@ export const inventariosService = {
   },
 
   async actualizarProducto(id: number, datos: GuardarProductoDTO): Promise<Producto> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((r) => setTimeout(r, 250));
       const cat = categoriasMemoria.find((c) => c.id === datos.categoriaId);
@@ -274,7 +274,7 @@ export const inventariosService = {
   },
 
   async eliminarProducto(id: number): Promise<void> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((r) => setTimeout(r, 200));
       productosMemoria = productosMemoria.filter((p) => p.id !== id);
@@ -284,7 +284,7 @@ export const inventariosService = {
   },
 
   async obtenerMovimientos(productoId?: number): Promise<Movimiento[]> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((r) => setTimeout(r, 150));
       if (productoId) {
@@ -303,7 +303,7 @@ export const inventariosService = {
   },
 
   async registrarMovimiento(datos: RegistrarMovimientoDTO): Promise<Movimiento> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((r) => setTimeout(r, 250));
       const prod = productosMemoria.find((p) => p.id === datos.producto_id);

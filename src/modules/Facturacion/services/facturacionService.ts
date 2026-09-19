@@ -55,7 +55,7 @@ let facturasMemoria: Factura[] = [
 
 export const facturacionService = {
   async obtenerFacturas(): Promise<Factura[]> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((resolve) => setTimeout(resolve, 200));
       return [...facturasMemoria];
@@ -70,7 +70,7 @@ export const facturacionService = {
   },
 
   async emitirFacturaPorEstadia(datos: EmitirFacturaEstadiaDTO): Promise<Factura> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((resolve) => setTimeout(resolve, 300));
       const nuevoId = facturasMemoria.length + 1;
@@ -110,7 +110,7 @@ export const facturacionService = {
   },
 
   async obtenerEstadoCaja(): Promise<TurnoCaja> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((resolve) => setTimeout(resolve, 150));
       return { ...turnoCajaMemoria };
@@ -125,7 +125,7 @@ export const facturacionService = {
   },
 
   async abrirCaja(datos: AbrirCajaDTO): Promise<TurnoCaja> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((resolve) => setTimeout(resolve, 250));
       turnoCajaMemoria = {
@@ -148,7 +148,7 @@ export const facturacionService = {
   },
 
   async cerrarCaja(datos: CerrarCajaDTO): Promise<TurnoCaja> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((resolve) => setTimeout(resolve, 250));
       const esperado = turnoCajaMemoria.saldo_esperado || turnoCajaMemoria.base_inicial;
@@ -170,7 +170,7 @@ export const facturacionService = {
   },
 
   async registrarRecaudo(datos: RegistrarRecaudoDTO): Promise<void> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA !== 'false';
+    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
     if (usarMock) {
       await new Promise((resolve) => setTimeout(resolve, 250));
       if (turnoCajaMemoria.estado === 'abierta') {
