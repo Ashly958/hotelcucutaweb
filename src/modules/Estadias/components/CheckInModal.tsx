@@ -3,7 +3,7 @@ import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
 import { User, Plus, Trash2, Calendar, FileText, DollarSign, AlertCircle } from 'lucide-react';
 import type { RegistrarCheckInDTO, Acompanante } from '../types/estadia.types';
-import { habitacionesService } from '@/modules/Habitaciones/services/habitacionesService';
+import { getHabitaciones } from '@/modules/Habitaciones/services/habitacionesService';
 import type { Habitacion } from '@/modules/Habitaciones/types/habitacion.types';
 
 interface CheckInModalProps {
@@ -48,7 +48,7 @@ export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
   useEffect(() => {
     if (isOpen) {
       setCargandoHabs(true);
-      habitacionesService.obtenerTodas()
+      getHabitaciones()
         .then((habs) => {
           setHabitaciones(habs);
           // Auto-seleccionar la primera disponible

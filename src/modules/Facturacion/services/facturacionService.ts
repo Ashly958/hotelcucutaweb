@@ -11,209 +11,103 @@ import type {
   ReciboCaja,
 } from '../types/facturacion.types';
 
-// Memoria mock de respaldo
-let turnoCajaMemoria: TurnoCaja = {
-  id: 1,
-  usuario_id: 1,
-  usuario_nombre: 'Recepcionista Turno',
-  estado: 'abierta',
-  fecha_apertura: '2026-09-17 07:00:00',
-  fecha_cierre: null,
-  base_inicial: 150000,
-  total_recaudado: 890000,
-  total_efectivo: 890000,
-  saldo_esperado: 1040000,
-  movimientos_count: 5,
-};
+function mapFactura(item: any): Factura {
+  return {
+    id: item.id,
+    codigo_factura: item.numero_factura,
+    numero_factura: item.numero_factura,
+    estadia_id: item.estadia_id,
+    cliente_nombre: item.huesped ? item.huesped.nombres + ' ' + item.huesped.apellidos : 'Cliente',
+    cliente_documento: item.huesped ? item.huesped.numero_documento : '000000',
+    fecha_emision: item.fecha_emision,
+    subtotal: Number(item.subtotal),
+    iva: Number(item.valor_iva),
+    total: Number(item.total_factura),
+    total_factura: Number(item.total_factura),
+    saldo_pendiente_dinamico: Number(item.saldo_pendiente_dinamico || 0),
+    estado: item.estado,
+    detalles: item.detalles || [],
+  };
+}
 
-let facturasMemoria: Factura[] = [
-  {
-    id: 1,
-    codigo_factura: 'HC-0001',
-    numero_factura: 'HC-0001',
-    estadia_id: 1,
-    cliente_nombre: 'María Fernanda Ruiz',
-    cliente_documento: '60345123',
-    fecha_emision: '2026-09-17 14:00:00',
-    subtotal: 140000,
-    iva: 0,
-    total: 140000,
-    total_factura: 140000,
-    saldo_pendiente_dinamico: 35000,
-    estado: 'pagada_parcial',
-    detalles: [
-      {
-        id: 1,
-        concepto: 'Servicio de Hospedaje (2 noche(s))',
-        cantidad: 1,
-        valor_unitario: 140000,
-        subtotal: 140000,
-      },
-    ],
-  },
-];
+function mapCaja(item: any): TurnoCaja {
+  return {
+    id: item.id,
+    usuario_id: item.usuario_id,
+    usuario_nombre: 'Usuario ID: ' + item.usuario_id,
+    estado: item.estado,
+    fecha_apertura: item.fecha_apertura,
+    fecha_cierre: item.fecha_cierre,
+    base_inicial: Number(item.base_inicial_efectivo),
+    total_recaudado: Number(item.total_entradas_efectivo) - Number(item.total_salidas_efectivo),
+    total_efectivo: Number(item.total_entradas_efectivo),
+    saldo_esperado: Number(item.saldo_calculado),
+    saldo_real: item.saldo_real_entregado ? Number(item.saldo_real_entregado) : undefined,
+    diferencia: item.diferencia ? Number(item.diferencia) : undefined,
+    observaciones: item.observaciones,
+  };
+}
 
 export const facturacionService = {
   async obtenerFacturas(): Promise<Factura[]> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
-    if (usarMock) {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      return [...facturasMemoria];
-    }
-
     try {
-      const response = await api.get<RespuestaApi<Factura[]>>('/facturacion/facturas');
-      return response.data.data;
+      const response = await api.get<RespuestaApi<any[]>>('/facturacion/facturas');
+      return (response.data.data || []).map(mapFactura);
     } catch {
-      return [...facturasMemoria];
+      return [];
     }
   },
 
   async emitirFacturaPorEstadia(datos: EmitirFacturaEstadiaDTO): Promise<Factura> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
-    if (usarMock) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      const nuevoId = facturasMemoria.length + 1;
-      const nuevaFactura: Factura = {
-        id: nuevoId,
-        codigo_factura: `HC-${String(nuevoId).padStart(4, '0')}`,
-        numero_factura: `HC-${String(nuevoId).padStart(4, '0')}`,
-        estadia_id: datos.estadia_id,
-        cliente_nombre: 'Huésped Consolidado',
-        cliente_documento: '1090123456',
-        fecha_emision: new Date().toISOString().replace('T', ' ').substring(0, 19),
-        subtotal: 120000,
-        iva: 0,
-        total: 120000,
-        total_factura: 120000,
-        saldo_pendiente_dinamico: 0,
-        estado: 'pagada_total',
-        detalles: [
-          {
-            id: nuevoId,
-            concepto: `Liquidación formal de Estadía #${datos.estadia_id}`,
-            cantidad: 1,
-            valor_unitario: 120000,
-            subtotal: 120000,
-          },
-        ],
-      };
-      facturasMemoria = [nuevaFactura, ...facturasMemoria];
-      return nuevaFactura;
-    }
-
-    const response = await api.post<RespuestaApi<Factura>>(
+    const response = await api.post<RespuestaApi<any>>(
       '/facturacion/facturas/estadia',
       datos
     );
-    return response.data.data;
+    return mapFactura(response.data.data);
   },
 
   async obtenerEstadoCaja(): Promise<TurnoCaja> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
-    if (usarMock) {
-      await new Promise((resolve) => setTimeout(resolve, 150));
-      return { ...turnoCajaMemoria };
-    }
-
-    try {
-      const response = await api.get<RespuestaApi<TurnoCaja>>('/caja/estado');
-      return response.data.data;
-    } catch {
-      return { ...turnoCajaMemoria };
-    }
+    const response = await api.get<RespuestaApi<any>>('/caja/estado');
+    return mapCaja(response.data.data);
   },
 
   async abrirCaja(datos: AbrirCajaDTO): Promise<TurnoCaja> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
-    if (usarMock) {
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      turnoCajaMemoria = {
-        id: (turnoCajaMemoria.id || 0) + 1,
-        usuario_id: 1,
-        usuario_nombre: 'Recepcionista Turno',
-        estado: 'abierta',
-        fecha_apertura: new Date().toISOString().replace('T', ' ').substring(0, 19),
-        fecha_cierre: null,
-        base_inicial: datos.base_inicial,
-        total_recaudado: 0,
-        total_efectivo: 0,
-        saldo_esperado: datos.base_inicial,
-      };
-      return { ...turnoCajaMemoria };
-    }
-
-    const response = await api.post<RespuestaApi<TurnoCaja>>('/caja/abrir', datos);
-    return response.data.data;
+    const response = await api.post<RespuestaApi<any>>('/caja/abrir', datos);
+    return mapCaja(response.data.data);
   },
 
   async cerrarCaja(datos: CerrarCajaDTO): Promise<TurnoCaja> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
-    if (usarMock) {
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      const esperado = turnoCajaMemoria.saldo_esperado || turnoCajaMemoria.base_inicial;
-      const diferencia = datos.saldo_real - esperado;
-
-      turnoCajaMemoria = {
-        ...turnoCajaMemoria,
-        estado: 'cerrada',
-        fecha_cierre: new Date().toISOString().replace('T', ' ').substring(0, 19),
-        saldo_real: datos.saldo_real,
-        diferencia,
-        observaciones: datos.observaciones,
-      };
-      return { ...turnoCajaMemoria };
-    }
-
-    const response = await api.post<RespuestaApi<TurnoCaja>>('/caja/cerrar', datos);
-    return response.data.data;
+    const response = await api.post<RespuestaApi<any>>('/caja/cerrar', datos);
+    return mapCaja(response.data.data);
   },
 
   async registrarRecaudo(datos: RegistrarRecaudoDTO): Promise<void> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
-    if (usarMock) {
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      if (turnoCajaMemoria.estado === 'abierta') {
-        const actual = turnoCajaMemoria.total_recaudado || 0;
-        turnoCajaMemoria.total_recaudado = actual + datos.valor;
-        turnoCajaMemoria.saldo_esperado = turnoCajaMemoria.base_inicial + turnoCajaMemoria.total_recaudado;
-      }
-
-      // Si aplica a factura, actualizar saldo pendiente
-      if (datos.factura_id) {
-        facturasMemoria = facturasMemoria.map((f) => {
-          if (f.id === datos.factura_id) {
-            const nuevoSaldo = Math.max(0, f.saldo_pendiente_dinamico - datos.valor);
-            return {
-              ...f,
-              saldo_pendiente_dinamico: nuevoSaldo,
-              estado: nuevoSaldo === 0 ? 'pagada_total' : 'pagada_parcial',
-            };
-          }
-          return f;
-        });
-      }
-      return;
-    }
-
     await api.post<RespuestaApi<unknown>>('/recaudos', datos);
   },
 
   async obtenerCuentaEstadia(estadiaId: number): Promise<CuentaCentralizadaEstadia> {
-    const response = await api.get<RespuestaApi<CuentaCentralizadaEstadia>>(
+    const response = await api.get<RespuestaApi<any>>(
       `/facturacion/cuenta/${estadiaId}`
     );
-    return response.data.data;
+    const data = response.data.data;
+    return {
+      estadia_id: data.estadia_id,
+      saldo_base: Number(data.saldo_base),
+      total_abonos: Number(data.total_abonos),
+      saldo_pendiente: Number(data.saldo_pendiente),
+      facturas: (data.facturas || []).map(mapFactura),
+      recibos: data.recibos || [],
+    };
   },
 
   async obtenerRecibos(estadiaId?: number): Promise<ReciboCaja[]> {
     const params = estadiaId ? { estadia_id: estadiaId } : undefined;
-    const response = await api.get<RespuestaApi<ReciboCaja[]>>('/recaudos', { params });
+    const response = await api.get<RespuestaApi<any[]>>('/recaudos', { params });
     return response.data.data;
   },
 
   async obtenerHistorialCaja(): Promise<TurnoCaja[]> {
-    const response = await api.get<RespuestaApi<TurnoCaja[]>>('/caja/historial');
-    return response.data.data;
+    const response = await api.get<RespuestaApi<any[]>>('/caja/historial');
+    return (response.data.data || []).map(mapCaja);
   },
 };

@@ -15,56 +15,56 @@ import type {
 
 export const reportesService = {
   async getOcupacion(filtros?: FiltroReportes): Promise<ReporteOcupacionResponse> {
-    const { data } = await api.get<ReporteOcupacionResponse>('/reportes/ocupacion', {
+    const { data } = await api.get<RespuestaApi<ReporteOcupacionResponse>>('/reportes/ocupacion', {
       params: {
         fecha_inicio: filtros?.fechaInicio,
         piso_id: filtros?.pisoId,
       },
     });
-    return data;
+    return data.data;
   },
 
   async getIngresos(filtros?: FiltroReportes): Promise<ReporteIngresosResponse> {
-    const { data } = await api.get<ReporteIngresosResponse>('/reportes/ingresos', {
+    const { data } = await api.get<RespuestaApi<ReporteIngresosResponse>>('/reportes/ingresos', {
       params: {
         filtro: filtros?.filtroPeriodo,
         fecha_inicio: filtros?.fechaInicio,
         fecha_fin: filtros?.fechaFin,
       },
     });
-    return data;
+    return data.data;
   },
 
   async getDian(filtros?: FiltroReportes): Promise<ReporteDianResponse> {
-    const { data } = await api.get<ReporteDianResponse>('/reportes/dian', {
+    const { data } = await api.get<RespuestaApi<ReporteDianResponse>>('/reportes/dian', {
       params: {
         fecha_inicio: filtros?.fechaInicio,
         fecha_fin: filtros?.fechaFin,
       },
     });
-    return data;
+    return data.data;
   },
 
   async getPoliciaTra(filtros?: FiltroReportes): Promise<ReportePoliciaTraResponse> {
-    const { data } = await api.get<ReportePoliciaTraResponse>('/reportes/policia-tra', {
+    const { data } = await api.get<RespuestaApi<ReportePoliciaTraResponse>>('/reportes/policia-tra', {
       params: {
         fecha_inicio: filtros?.fechaInicio,
         fecha_fin: filtros?.fechaFin,
         estado: filtros?.estado,
       },
     });
-    return data;
+    return data.data;
   },
 
   async getSire(filtros?: FiltroReportes): Promise<ReporteSireResponse> {
-    const { data } = await api.get<ReporteSireResponse>('/reportes/sire', {
+    const { data } = await api.get<RespuestaApi<ReporteSireResponse>>('/reportes/sire', {
       params: {
         estado: filtros?.estado,
         fecha_inicio: filtros?.fechaInicio,
         fecha_fin: filtros?.fechaFin,
       },
     });
-    return data;
+    return data.data;
   },
 
   async actualizarEstadoSire(
@@ -75,22 +75,22 @@ export const reportesService = {
   },
 
   async getMincit(filtros?: FiltroReportes): Promise<ReporteMincitResponse> {
-    const { data } = await api.get<ReporteMincitResponse>('/reportes/mincit', {
+    const { data } = await api.get<RespuestaApi<ReporteMincitResponse>>('/reportes/mincit', {
       params: {
         mes: filtros?.mes,
         anio: filtros?.anio,
       },
     });
-    return data;
+    return data.data;
   },
 
   async getAuditoriaDiaria(filtros?: FiltroReportes): Promise<ReporteAuditoriaDiariaResponse> {
-    const { data } = await api.get<ReporteAuditoriaDiariaResponse>('/reportes/auditoria-diaria', {
+    const { data } = await api.get<RespuestaApi<ReporteAuditoriaDiariaResponse>>('/reportes/auditoria-diaria', {
       params: {
         fecha_inicio: filtros?.fechaInicio,
       },
     });
-    return data;
+    return data.data;
   },
 
   async cerrarAuditoriaDiaria(datos: {

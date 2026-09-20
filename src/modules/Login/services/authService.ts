@@ -1,29 +1,13 @@
 import { api } from '@/services/api';
-import { simularLoginApi, USUARIOS_MOCK } from '@/services/mockAuth';
 import type { CredencialesDTO, RespuestaAutenticacion, Usuario, RolUsuario } from '../types/auth.types';
 import type { RespuestaApi } from '@/types/api';
 
 /**
- * Servicio de Autenticación del Módulo Login.
- * Cumple con la directiva:
- * - No contiene estado de React.
- * - Respeta la arquitectura de capas.
- * - Utiliza mock data cuando VITE_USE_MOCK_DATA está activo o como fallback en desarrollo.
+ * Mapea el usuario recibido desde el backend Laravel a la interfaz requerida por el frontend
  */
 function mapearUsuarioBackend(u: any): Usuario {
   if (!u) {
-    return {
-      id: '1',
-      nombre: 'Usuario',
-      apellido: '',
-      email: '',
-      rol: 'RECEPCION',
-      rolNombre: 'Recepción & Front Desk',
-      estado: 'ACTIVO',
-      hotelId: 'hc-principal',
-      hotelNombre: 'Hotel Cúcuta',
-      ultimoAcceso: new Date().toISOString(),
-    };
+    throw new Error("No se recibió información del usuario desde el servidor.");
   }
 
   const nombreCompleto = u.nombre_completo || u.nombre || 'Usuario';
@@ -65,25 +49,11 @@ function mapearUsuarioBackend(u: any): Usuario {
   };
 }
 
-/**
- * Servicio de Autenticación del Módulo Login.
- * Cumple con la directiva:
- * - No contiene estado de React.
- * - Respeta la arquitectura de capas.
- * - Conecta con el backend Laravel y soporta fallback seguro.
- */
 export const authService = {
   /**
    * Realiza la petición de inicio de sesión con las credenciales suministradas.
    */
   async iniciarSesion(credenciales: CredencialesDTO): Promise<RespuestaAutenticacion> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
-
-    if (usarMock) {
-      const respuestaMock = await simularLoginApi(credenciales);
-      return respuestaMock.data;
-    }
-
     try {
       // Petición real hacia la API de Laravel
       const respuesta = await api.post<RespuestaApi<{ token: string; usuario?: any }>>(
@@ -124,23 +94,22 @@ export const authService = {
    * Notifica el cierre de sesión al backend para invalidar el token.
    */
   async cerrarSesion(): Promise<void> {
-    // Si se requiere endpoint en backend se puede invocar, localmente se limpia el token
+    try {
+      await api.post('/autenticacion/logout');
+    } catch (error) {
+      console.error('Error al cerrar sesión en el servidor', error);
+    }
   },
 
   /**
    * Obtiene la información del usuario autenticado actual.
    */
   async obtenerPerfilActual(): Promise<Usuario> {
-    const usarMock = import.meta.env.VITE_USE_MOCK_DATA === 'true';
-    if (usarMock) {
-      return USUARIOS_MOCK[0];
-    }
-
     try {
       const respuesta = await api.get<RespuestaApi<any>>('/autenticacion/me');
       return mapearUsuarioBackend(respuesta.data.data);
-    } catch {
-      return USUARIOS_MOCK[0];
+    } catch (error) {
+      throw new Error('No se pudo obtener el perfil del usuario');
     }
   },
 };
