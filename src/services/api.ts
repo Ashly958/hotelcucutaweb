@@ -2,13 +2,6 @@ import axios from 'axios';
 import { store } from '@/store';
 import { cerrarSesion } from '@/store/slices/authSlice';
 
-/**
- * Cliente HTTP centralizado para la aplicación Hotel Cúcuta.
- * Cumple estrictamente las directivas de AGENTS.md y estado-y-servicios.md:
- * - Una única instancia global.
- * - Inyección automática de Bearer Token en peticiones salientes.
- * - Captura global del error 401 Unauthorized para limpieza y redirección.
- */
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
   timeout: 10000,
@@ -18,7 +11,6 @@ export const api = axios.create({
   },
 });
 
-// Interceptor de Petición: Inyección automática de Bearer Token
 api.interceptors.request.use(
   (config) => {
     const token = store.getState().auth.token;
@@ -30,7 +22,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor de Respuesta: Manejo centralizado de expiración de sesión (401)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -40,6 +31,9 @@ api.interceptors.response.use(
       if (!rutasPublicas.includes(window.location.pathname)) {
         window.location.href = '/login';
       }
+    } else if (error.response?.status >= 500) {
+      console.error('Error interno del servidor:', error.response?.data);
+      alert('Error interno del servidor. Por favor, intente de nuevo más tarde.');
     }
     return Promise.reject(error);
   }

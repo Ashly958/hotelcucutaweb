@@ -1,5 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
-import { habitacionesService } from '../services/habitacionesService';
+import {
+  getHabitaciones,
+  crearHabitacion as srvCrearHabitacion,
+  cambiarEstado as srvCambiarEstado,
+  eliminarHabitacion as srvEliminarHabitacion,
+  checkIn,
+  checkOut,
+} from '../services/habitacionesService';
 import type { Habitacion, EstadoHabitacion, CheckInDTO } from '../types/habitacion.types';
 
 export function useHabitaciones() {
@@ -20,7 +27,7 @@ export function useHabitaciones() {
     try {
       setCargando(true);
       setError(null);
-      const data = await habitacionesService.obtenerTodas();
+      const data = await getHabitaciones();
       setHabitaciones(data);
     } catch {
       setError('No fue posible cargar el mapa de habitaciones del hotel.');
@@ -72,7 +79,7 @@ export function useHabitaciones() {
 
   const cambiarEstado = async (habitacionId: string, nuevoEstado: EstadoHabitacion) => {
     try {
-      const habActualizada = await habitacionesService.cambiarEstado(habitacionId, nuevoEstado);
+      const habActualizada = await srvCambiarEstado(habitacionId, nuevoEstado);
       setHabitaciones((prev) => prev.map((h) => (h.id === habitacionId ? habActualizada : h)));
       if (habitacionSeleccionada?.id === habitacionId) {
         setHabitacionSeleccionada(habActualizada);
@@ -84,7 +91,7 @@ export function useHabitaciones() {
 
   const crearHabitacion = async (datos: import('../types/habitacion.types').CrearHabitacionDTO) => {
     try {
-      const nueva = await habitacionesService.crear(datos);
+      const nueva = await srvCrearHabitacion(datos);
       setHabitaciones((prev) => [...prev, nueva]);
       setModalCrearHabitacionAbierto(false);
       return true;
@@ -96,7 +103,7 @@ export function useHabitaciones() {
 
   const eliminarHabitacion = async (habitacionId: string) => {
     try {
-      await habitacionesService.eliminar(habitacionId);
+      await srvEliminarHabitacion(habitacionId);
       setHabitaciones((prev) => prev.filter((h) => h.id !== habitacionId));
       if (habitacionSeleccionada?.id === habitacionId) {
         setHabitacionSeleccionada(null);
@@ -110,7 +117,7 @@ export function useHabitaciones() {
 
   const realizarCheckIn = async (datos: CheckInDTO) => {
     try {
-      const habActualizada = await habitacionesService.registrarCheckIn(datos);
+      const habActualizada = await checkIn(datos.habitacionId, datos);
       setHabitaciones((prev) => prev.map((h) => (h.id === datos.habitacionId ? habActualizada : h)));
       setHabitacionSeleccionada(null);
       return true;
@@ -122,7 +129,7 @@ export function useHabitaciones() {
 
   const realizarCheckOut = async (habitacionId: string) => {
     try {
-      const habActualizada = await habitacionesService.registrarCheckOut(habitacionId);
+      const habActualizada = await checkOut(habitacionId);
       setHabitaciones((prev) => prev.map((h) => (h.id === habitacionId ? habActualizada : h)));
       setHabitacionSeleccionada(null);
       return true;
@@ -156,4 +163,3 @@ export function useHabitaciones() {
     recargar: cargarHabitaciones,
   };
 }
-

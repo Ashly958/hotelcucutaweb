@@ -49,16 +49,7 @@ export function LoginForm({ onSubmit, cargando, error, onLimpiarError }: LoginFo
     });
   };
 
-  const formatearMensajeError = (msg: string) => {
-    if (msg.toLowerCase().includes('inválid') || msg.toLowerCase().includes('invalid')) {
-      return (
-        <span>
-          <strong>Credenciales incorrectas.</strong> La contraseña en la base de datos es sensible a mayúsculas: use <code className="font-mono bg-red-100 px-1 rounded text-red-900 font-bold">Password123!</code> (con 'P' mayúscula y signo de exclamación al final).
-        </span>
-      );
-    }
-    return msg;
-  };
+
 
   return (
     <div className="w-full max-w-sm mx-auto">
@@ -69,7 +60,7 @@ export function LoginForm({ onSubmit, cargando, error, onLimpiarError }: LoginFo
           className="mb-2 p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800 flex items-start gap-2 animate-fadeIn"
         >
           <AlertCircle className="w-4 h-4 text-brand-red shrink-0 mt-0.5" />
-          <p className="leading-snug text-[11px]">{formatearMensajeError(error)}</p>
+          <p className="leading-snug text-[11px]">{error}</p>
         </div>
       )}
 
@@ -149,24 +140,7 @@ export function LoginForm({ onSubmit, cargando, error, onLimpiarError }: LoginFo
           </Button>
         </div>
 
-        {/* Referencia discreta para pruebas con la API Real */}
-        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-          <span>
-            API Real: <strong className="text-slate-600 font-mono">admin@hotelcucuta.com</strong>
-          </span>
-          <button
-            type="button"
-            onClick={() => {
-              setEmail('admin@hotelcucuta.com');
-              setPassword('Password123!');
-              setErroresCampos({});
-              onLimpiarError();
-            }}
-            className="text-red-700 hover:text-red-800 font-medium underline"
-          >
-            Pegar datos Admin
-          </button>
-        </div>
+
       </form>
     </div>
   );
