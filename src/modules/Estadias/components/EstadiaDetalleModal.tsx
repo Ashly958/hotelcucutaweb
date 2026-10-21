@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
-import { User, LogOut, CheckCircle, Clock } from 'lucide-react';
+import { User, LogOut, CheckCircle, Clock, FileText, Printer, CalendarPlus, AlertTriangle } from 'lucide-react';
 import type { Estadia } from '../types/estadia.types';
+import { estadiasService } from '../services/estadiasService';
 
 interface EstadiaDetalleModalProps {
   isOpen: boolean;
   estadia: Estadia | null;
   onClose: () => void;
   onCheckOut: (id: number) => Promise<boolean>;
+  onVerFolio?: (id: number) => void;
+  onImprimirInforme?: (id: number) => void;
+  onEstadiaActualizada?: () => void;
 }
 
 export function EstadiaDetalleModal({
@@ -16,13 +20,48 @@ export function EstadiaDetalleModal({
   estadia,
   onClose,
   onCheckOut,
+  onVerFolio,
+  onImprimirInforme,
+  onEstadiaActualizada,
 }: EstadiaDetalleModalProps) {
   const [cargandoCheckout, setCargandoCheckout] = useState(false);
+  const [mostrarFormExtension, setMostrarFormExtension] = useState(false);
+  const [diasAdicionales, setDiasAdicionales] = useState(1);
+  const [cargandoExtension, setCargandoExtension] = useState(false);
+  const [errorExtension, setErrorExtension] = useState<string | null>(null);
 
   if (!estadia) return null;
 
   const esActiva = estadia.estado === 'activa';
   const habNumero = estadia.habitacion_numero || String(estadia.habitacion_id).padStart(2, '0');
+  const tarifaNoche = estadia.valor_habitacion || (estadia.total / Math.max(1, estadia.dias_estadia));
+
+  const fechaActualSalida = new Date(estadia.fecha_prevista_checkout || Date.now());
+  const nuevaFechaSalida = new Date(fechaActualSalida);
+  nuevaFechaSalida.setDate(nuevaFechaSalida.getDate() + Number(diasAdicionales || 1));
+  nuevaFechaSalida.setHours(13, 0, 0, 0);
+
+  const costoAdicional = Number(diasAdicionales || 1) * tarifaNoche;
+  const nuevoTotalEstimado = (estadia.total || 0) + costoAdicional;
+
+  const handleExtender = async () => {
+    setErrorExtension(null);
+    setCargandoExtension(true);
+    try {
+      await estadiasService.extenderEstadia(estadia.id, {
+        dias_adicionales: Number(diasAdicionales),
+      });
+      alert(`¡Estadía extendida exitosamente! Se agregaron ${diasAdicionales} noche(s).`);
+      setMostrarFormExtension(false);
+      if (onEstadiaActualizada) onEstadiaActualizada();
+      onClose();
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Error al extender la estadía';
+      setErrorExtension(msg);
+    } finally {
+      setCargandoExtension(false);
+    }
+  };
 
   const handleCheckout = async () => {
     if (
@@ -165,16 +204,47 @@ export function EstadiaDetalleModal({
 
           <div className="space-y-1.5 text-xs">
             <div className="flex justify-between text-slate-600">
-              <span>Tarifa por noche:</span>
+              <span>Tarifa pactada por noche:</span>
               <span className="font-mono">${(estadia.valor_habitacion || 0).toLocaleString('es-CO')}</span>
             </div>
-            <div className="flex justify-between text-slate-600">
-              <span>Total estadía ({estadia.dias_estadia || 1} noches):</span>
-              <span className="font-mono font-semibold text-slate-900">
-                ${(estadia.total || 0).toLocaleString('es-CO')}
-              </span>
-            </div>
-            <div className="flex justify-between text-emerald-700">
+            {(() => {
+              const totalEstadia = estadia.total || 0;
+              const iva = estadia.iva || 0;
+              const impoConsumo = estadia.impuesto_consumo || 0;
+              const subtotal = estadia.subtotal !== undefined
+                ? estadia.subtotal
+                : Math.max(0, totalEstadia - iva - impoConsumo);
+
+              return (
+                <div className="space-y-1.5 pt-1.5 border-t border-slate-200/60">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Subtotal Hospedaje (Base gravable):</span>
+                    <span className="font-mono font-medium text-slate-800">
+                      ${subtotal.toLocaleString('es-CO')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>IVA Hospedaje (19% o exento):</span>
+                    <span className="font-mono text-slate-700">
+                      ${iva.toLocaleString('es-CO')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Impuesto Nacional al Consumo:</span>
+                    <span className="font-mono text-slate-700">
+                      ${impoConsumo.toLocaleString('es-CO')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between font-semibold text-slate-900 pt-1 border-t border-slate-200/80">
+                    <span>Total liquidado ({estadia.dias_estadia || 1} noches):</span>
+                    <span className="font-mono font-bold">
+                      ${totalEstadia.toLocaleString('es-CO')}
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
+            <div className="flex justify-between text-emerald-700 pt-1">
               <span>Abonos / Pagos realizados:</span>
               <span className="font-mono font-semibold">
                 ${(estadia.abonos_totales || 0).toLocaleString('es-CO')}
@@ -189,23 +259,136 @@ export function EstadiaDetalleModal({
           </div>
         </div>
 
+        {/* Sección: Extensión de Estadía (+ Días) */}
+        {esActiva && (
+          <div className="border border-amber-200 bg-amber-50/50 rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CalendarPlus className="w-4 h-4 text-amber-700" />
+                <span className="font-bold text-slate-900 text-xs">
+                  {mostrarFormExtension ? 'Prolongar Días de Estadía' : '¿El huésped desea quedarse más días?'}
+                </span>
+              </div>
+              <Button
+                variant={mostrarFormExtension ? 'outline' : 'primary'}
+                size="sm"
+                onClick={() => setMostrarFormExtension(!mostrarFormExtension)}
+              >
+                {mostrarFormExtension ? 'Cancelar' : '+ Extender Estadía'}
+              </Button>
+            </div>
+
+            {mostrarFormExtension && (
+              <div className="pt-2 border-t border-amber-200/70 space-y-3">
+                {errorExtension && (
+                  <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-lg flex items-center gap-2 text-rose-700 text-xs">
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                    <span>{errorExtension}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Noches adicionales a sumar:
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={diasAdicionales}
+                      onChange={(e) => setDiasAdicionales(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 font-bold font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Tarifa por noche pactada:
+                    </label>
+                    <div className="px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-white font-mono font-semibold text-slate-700">
+                      ${tarifaNoche.toLocaleString('es-CO')}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-3 rounded-lg border border-amber-200/80 space-y-1.5 text-[11px]">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Nueva salida estimada:</span>
+                    <span className="font-semibold text-slate-900">
+                      {nuevaFechaSalida.toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' })} (1:00 PM)
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Costo adicional a cargar al folio:</span>
+                    <span className="font-mono font-bold text-amber-800">
+                      +${costoAdicional.toLocaleString('es-CO')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t border-slate-100 font-bold">
+                    <span className="text-slate-700">Nuevo total de la estadía:</span>
+                    <span className="font-mono text-emerald-700">
+                      ${nuevoTotalEstimado.toLocaleString('es-CO')}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    cargando={cargandoExtension}
+                    onClick={handleExtender}
+                    icono={<CalendarPlus className="w-3.5 h-3.5" />}
+                  >
+                    Confirmar Extensión (+{diasAdicionales} noche{diasAdicionales > 1 ? 's' : ''})
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Acciones */}
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
           <Button variant="outline" size="md" onClick={onClose}>
             Cerrar
           </Button>
 
-          {esActiva && (
-            <Button
-              variant="danger"
-              size="md"
-              cargando={cargandoCheckout}
-              onClick={handleCheckout}
-              icono={<LogOut className="w-4 h-4" />}
-            >
-              Realizar Check-Out
-            </Button>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {onVerFolio && (
+              <Button
+                variant="outline"
+                size="md"
+                onClick={() => onVerFolio(estadia.id)}
+                icono={<FileText className="w-4 h-4" />}
+              >
+                Ver Folio (Cuenta)
+              </Button>
+            )}
+
+            {onImprimirInforme && (
+              <Button
+                variant="outline"
+                size="md"
+                onClick={() => onImprimirInforme(estadia.id)}
+                icono={<Printer className="w-4 h-4" />}
+              >
+                Informe Huésped
+              </Button>
+            )}
+
+            {esActiva && (
+              <Button
+                variant="danger"
+                size="md"
+                cargando={cargandoCheckout}
+                onClick={handleCheckout}
+                icono={<LogOut className="w-4 h-4" />}
+              >
+                Realizar Check-Out
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </Modal>

@@ -112,10 +112,10 @@ export function LavanderiaWorkspace() {
             <div className="text-2xl font-bold font-display text-slate-900 tracking-tight">
               $6.000 COP
             </div>
-            <span className="text-[10px] text-slate-400">Cargo a folio (RF-010)</span>
+            <span className="text-[10px] text-slate-400">Cargo a folio</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-center text-slate-700">
-            <span className="font-mono text-xs font-bold">RF-10</span>
+            <IconoLavanderia size={18} />
           </div>
         </div>
 

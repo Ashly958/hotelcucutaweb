@@ -7,6 +7,7 @@ import type {
 
 export function useInformacionHotel() {
   const [info, setInfo] = useState<InformacionHotel | null>(null);
+  const [precios, setPrecios] = useState<any[]>([]);
   const [cargando, setCargando] = useState<boolean>(true);
   const [guardando, setGuardando] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,8 +17,12 @@ export function useInformacionHotel() {
     try {
       setCargando(true);
       setError(null);
-      const data = await informacionHotelService.obtener();
-      setInfo(data);
+      const [dataInfo, dataPrecios] = await Promise.all([
+        informacionHotelService.obtener(),
+        informacionHotelService.obtenerPreciosOnboarding()
+      ]);
+      setInfo(dataInfo);
+      setPrecios(dataPrecios);
     } catch {
       setError('No fue posible cargar la información institucional del hotel.');
     } finally {
@@ -29,13 +34,26 @@ export function useInformacionHotel() {
     cargarInformacion();
   }, [cargarInformacion]);
 
-  const guardarInformacion = async (datos: GuardarInformacionHotelDTO): Promise<boolean> => {
+  const guardarInformacion = async (datos: GuardarInformacionHotelDTO, nuevosPrecios?: any[]): Promise<boolean> => {
     try {
       setGuardando(true);
       setError(null);
       setMensajeExito(null);
-      const actualizada = await informacionHotelService.guardar(datos, info?.id);
-      setInfo(actualizada);
+      
+      const requests: Promise<any>[] = [
+        informacionHotelService.guardar(datos, info?.id)
+      ];
+
+      if (nuevosPrecios && nuevosPrecios.length > 0) {
+        requests.push(informacionHotelService.actualizarPreciosOnboarding(nuevosPrecios));
+      }
+
+      const results = await Promise.all(requests);
+      setInfo(results[0]);
+      if (results.length > 1) {
+        setPrecios(results[1]);
+      }
+      
       setMensajeExito('Información y políticas del hotel actualizadas con éxito.');
       setTimeout(() => setMensajeExito(null), 4000);
       return true;
@@ -49,6 +67,7 @@ export function useInformacionHotel() {
 
   return {
     info,
+    precios,
     cargando,
     guardando,
     error,

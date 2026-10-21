@@ -1,4 +1,6 @@
-import type { Habitacion, EstadoHabitacion, CheckInDTO } from '../types/habitacion.types';
+import { useState, useEffect } from 'react';
+import type { Habitacion, EstadoHabitacion } from '../types/habitacion.types';
+import { facturacionService } from '@/modules/Facturacion/services/facturacionService';
 import { HabitacionCard } from './HabitacionCard';
 import { HabitacionDetalleModal } from './HabitacionDetalleModal';
 import {
@@ -7,6 +9,8 @@ import {
   IconoCamaHotel,
 } from '@/components';
 import { Search, RotateCcw } from 'lucide-react';
+
+import type { DatosInicialesCheckIn } from '@/modules/Estadias/types/estadia.types';
 
 interface RecepcionWorkspaceProps {
   habitaciones: Habitacion[];
@@ -23,14 +27,17 @@ interface RecepcionWorkspaceProps {
   setFiltroPiso: (piso: number | 'todos') => void;
   filtroEstado: EstadoHabitacion | 'todos';
   setFiltroEstado: (estado: EstadoHabitacion | 'todos') => void;
+  filtroClima: 'todos' | 'aire' | 'ventilador';
+  setFiltroClima: (clima: 'todos' | 'aire' | 'ventilador') => void;
   busqueda: string;
   setBusqueda: (q: string) => void;
   habitacionSeleccionada: Habitacion | null;
   setHabitacionSeleccionada: (h: Habitacion | null) => void;
   cambiarEstado: (id: string, nuevoEstado: EstadoHabitacion) => Promise<void>;
-  realizarCheckIn: (datos: CheckInDTO) => Promise<boolean>;
+  onAbrirCheckInAvanzado: (habitacionId: number, datosIniciales?: DatosInicialesCheckIn) => void;
   realizarCheckOut: (id: string) => Promise<boolean>;
   onCrearHabitacion?: () => void;
+  onEditarHabitacion?: (habitacion: Habitacion) => void;
 }
 
 export function RecepcionWorkspace({
@@ -41,15 +48,30 @@ export function RecepcionWorkspace({
   setFiltroPiso,
   filtroEstado,
   setFiltroEstado,
+  filtroClima,
+  setFiltroClima,
   busqueda,
   setBusqueda,
   habitacionSeleccionada,
   setHabitacionSeleccionada,
   cambiarEstado,
-  realizarCheckIn,
+  onAbrirCheckInAvanzado,
   realizarCheckOut,
   onCrearHabitacion,
+  onEditarHabitacion,
 }: RecepcionWorkspaceProps) {
+  const [cajaEfectivo, setCajaEfectivo] = useState<number | null>(null);
+
+  useEffect(() => {
+    facturacionService.obtenerEstadoCaja().then(caja => {
+      if (caja && caja.estado === 'abierta') {
+        setCajaEfectivo(caja.total_efectivo || 0);
+      } else {
+        setCajaEfectivo(null);
+      }
+    }).catch(() => setCajaEfectivo(null));
+  }, []);
+
   const pisos = [
     { label: 'Todos los pisos', valor: 'todos' as const, conteo: metricas.total },
     { label: 'Piso 1', valor: 1, conteo: todasLasHabitaciones.filter((h) => h.piso === 1).length },
@@ -137,12 +159,22 @@ export function RecepcionWorkspace({
               Caja Efectivo (RN-010)
             </span>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold font-display tracking-tight text-slate-900">
-                ${(1420000).toLocaleString('es-CO')}
-              </span>
+              {cajaEfectivo !== null ? (
+                <span className="text-3xl font-bold font-display tracking-tight text-slate-900">
+                  ${cajaEfectivo.toLocaleString('es-CO')}
+                </span>
+              ) : (
+                <span className="text-xl font-bold font-display tracking-tight text-slate-500">
+                  Caja Cerrada
+                </span>
+              )}
             </div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-200/60 flex items-center justify-center text-red-700 shadow-soft-xs">
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-soft-xs border ${
+            cajaEfectivo !== null
+              ? 'bg-red-50 border-red-200/60 text-red-700'
+              : 'bg-slate-50 border-slate-200/60 text-slate-400'
+          }`}>
             <IconoEfectivo size={20} />
           </div>
         </div>
@@ -197,26 +229,56 @@ export function RecepcionWorkspace({
         </div>
 
         {/* Píldoras de Estados Relajadas */}
-        <div className="flex items-center gap-1.5 pt-3 border-t border-slate-100 overflow-x-auto no-scrollbar">
-          <span className="text-[11px] text-slate-400 font-medium mr-1.5 hidden sm:inline">
-            Filtrar estado:
-          </span>
-          {estados.map((e) => {
-            const activo = filtroEstado === e.valor;
-            return (
-              <button
-                key={e.label}
-                onClick={() => setFiltroEstado(e.valor)}
-                className={`px-3 py-1 rounded-lg text-xs transition-all whitespace-nowrap ${
-                  activo
-                    ? 'bg-slate-900 text-white font-semibold shadow-soft-xs'
-                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/50'
-                }`}
-              >
-                {e.label} <span className="text-[10px] opacity-70 ml-0.5">({e.conteo})</span>
-              </button>
-            );
-          })}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-3 border-t border-slate-100">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <span className="text-[11px] text-slate-400 font-medium mr-1.5 hidden sm:inline">
+              Filtrar estado:
+            </span>
+            {estados.map((e) => {
+              const activo = filtroEstado === e.valor;
+              return (
+                <button
+                  key={e.label}
+                  onClick={() => setFiltroEstado(e.valor)}
+                  className={`px-3 py-1 rounded-lg text-xs transition-all whitespace-nowrap ${
+                    activo
+                      ? 'bg-slate-900 text-white font-semibold shadow-soft-xs'
+                      : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/50'
+                  }`}
+                >
+                  {e.label} <span className="text-[10px] opacity-70 ml-0.5">({e.conteo})</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="hidden sm:block w-px h-6 bg-slate-200/60" />
+
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <span className="text-[11px] text-slate-400 font-medium mr-1.5 hidden sm:inline">
+              Climatización:
+            </span>
+            {[
+              { label: 'Todas', valor: 'todos' as const },
+              { label: 'Aire Acondicionado', valor: 'aire' as const },
+              { label: 'Ventilador', valor: 'ventilador' as const },
+            ].map((c) => {
+              const activo = filtroClima === c.valor;
+              return (
+                <button
+                  key={c.label}
+                  onClick={() => setFiltroClima(c.valor)}
+                  className={`px-3 py-1 rounded-lg text-xs transition-all whitespace-nowrap ${
+                    activo
+                      ? 'bg-slate-900 text-white font-semibold shadow-soft-xs'
+                      : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/50'
+                  }`}
+                >
+                  {c.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -237,6 +299,7 @@ export function RecepcionWorkspace({
               key={habitacion.id}
               habitacion={habitacion}
               onSeleccionar={setHabitacionSeleccionada}
+              onEditar={onEditarHabitacion}
             />
           ))}
         </div>
@@ -248,7 +311,7 @@ export function RecepcionWorkspace({
           habitacion={habitacionSeleccionada}
           onClose={() => setHabitacionSeleccionada(null)}
           onCambiarEstado={cambiarEstado}
-          onCheckIn={realizarCheckIn}
+          onAbrirCheckInAvanzado={onAbrirCheckInAvanzado}
           onCheckOut={realizarCheckOut}
         />
       )}

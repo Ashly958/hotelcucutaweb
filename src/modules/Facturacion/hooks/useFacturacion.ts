@@ -5,6 +5,8 @@ import type {
   Factura,
   TurnoCaja,
   RegistrarRecaudoDTO,
+  RegistrarEgresoDTO,
+  EgresoCaja,
   CuentaCentralizadaEstadia,
 } from '../types/facturacion.types';
 import type { Estadia } from '@/modules/Estadias/types/estadia.types';
@@ -12,16 +14,24 @@ import type { Estadia } from '@/modules/Estadias/types/estadia.types';
 export function useFacturacion() {
   const [facturas, setFacturas] = useState<Factura[]>([]);
   const [turnoCaja, setTurnoCaja] = useState<TurnoCaja | null>(null);
+  const [egresos, setEgresos] = useState<EgresoCaja[]>([]);
   const [estadias, setEstadias] = useState<Estadia[]>([]);
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   // Filtros
   const [filtroEstado, setFiltroEstado] = useState<'todas' | 'pagada' | 'pendiente'>('todas');
+  const [filtroFecha, setFiltroFecha] = useState<'hoy' | 'todas'>('todas');
   const [busqueda, setBusqueda] = useState<string>('');
+  
+  // Paginación
+  const [limite, setLimite] = useState<number>(100);
+  const [pagina, setPagina] = useState<number>(1);
+  const [paginacion, setPaginacion] = useState<any>(null);
 
   // Modales
   const [modalAbonoAbierto, setModalAbonoAbierto] = useState<boolean>(false);
+  const [modalEgresoAbierto, setModalEgresoAbierto] = useState<boolean>(false);
   const [modalAbrirCajaAbierto, setModalAbrirCajaAbierto] = useState<boolean>(false);
   const [modalCerrarCajaAbierto, setModalCerrarCajaAbierto] = useState<boolean>(false);
   const [facturaSeleccionada, setFacturaSeleccionada] = useState<Factura | null>(null);
@@ -32,20 +42,23 @@ export function useFacturacion() {
     try {
       setCargando(true);
       setError(null);
-      const [listaFacturas, estadoCaja, listaEstadias] = await Promise.all([
-        facturacionService.obtenerFacturas(),
+      const [resFacturas, estadoCaja, listaEstadias, listaEgresos] = await Promise.all([
+        facturacionService.obtenerFacturas({ fecha: filtroFecha, limit: limite, page: pagina }),
         facturacionService.obtenerEstadoCaja(),
         estadiasService.obtenerTodas().catch(() => []),
+        facturacionService.obtenerEgresos({ turno_activo: true }).catch(() => []),
       ]);
-      setFacturas(listaFacturas);
+      setFacturas(resFacturas.data);
+      setPaginacion(resFacturas.pagination);
       setTurnoCaja(estadoCaja);
       setEstadias(listaEstadias);
+      setEgresos(listaEgresos);
     } catch {
       setError('No fue posible cargar la información financiera y de caja.');
     } finally {
       setCargando(false);
     }
-  }, []);
+  }, [filtroFecha, limite, pagina]);
 
   useEffect(() => {
     cargarDatos();
@@ -78,15 +91,19 @@ export function useFacturacion() {
     const totalFacturado = facturas.reduce((acc, f) => acc + (f.total || f.total_factura || 0), 0);
     const totalPendiente = facturas.reduce((acc, f) => acc + (f.saldo_pendiente_dinamico || 0), 0);
     const totalRecaudadoCaja = turnoCaja?.total_recaudado || 0;
+    const totalEgresosCaja = turnoCaja?.total_egresos ?? egresos.reduce((sum, e) => sum + (e.monto || 0), 0);
+    const saldoEsperadoGaveta = turnoCaja?.saldo_esperado ?? ((turnoCaja?.base_inicial || 0) + totalRecaudadoCaja - totalEgresosCaja);
 
     return {
       totalFacturas: facturas.length,
       totalFacturado,
       totalPendiente,
       totalRecaudadoCaja,
+      totalEgresosCaja,
+      saldoEsperadoGaveta,
       cajaAbierta: turnoCaja?.estado === 'abierta',
     };
-  }, [facturas, turnoCaja]);
+  }, [facturas, turnoCaja, egresos]);
 
   const abrirCaja = async (baseInicial: number): Promise<boolean> => {
     try {
@@ -123,9 +140,24 @@ export function useFacturacion() {
       await cargarDatos();
       setModalAbonoAbierto(false);
       return true;
-    } catch {
-      setError('Error al registrar el recaudo o abono.');
-      return false;
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.message || '';
+      if (errorMsg.includes('abrir la caja')) {
+        throw new Error('Atención: Debes abrir base de caja antes de poder recibir dinero');
+      }
+      throw new Error(errorMsg || 'Error al registrar el recaudo o abono.');
+    }
+  };
+
+  const registrarEgreso = async (datos: RegistrarEgresoDTO): Promise<boolean> => {
+    try {
+      await facturacionService.registrarEgreso(datos);
+      await cargarDatos();
+      setModalEgresoAbierto(false);
+      return true;
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.message || err?.message || '';
+      throw new Error(errorMsg || 'Error al registrar el egreso de caja menor.');
     }
   };
 
@@ -136,6 +168,20 @@ export function useFacturacion() {
       return true;
     } catch {
       setError('Error al emitir la factura por estadía.');
+      return false;
+    }
+  };
+
+  const remitirDian = async (facturaId: number): Promise<boolean> => {
+    try {
+      const { cufe } = await facturacionService.remitirFacturaDian(facturaId);
+      await cargarDatos();
+      setFacturaSeleccionada((prev) => 
+        prev?.id === facturaId ? { ...prev, cufe } : prev
+      );
+      return true;
+    } catch {
+      alert('Error al remitir a la DIAN.');
       return false;
     }
   };
@@ -156,16 +202,26 @@ export function useFacturacion() {
     facturas: facturasFiltradas,
     todasLasFacturas: facturas,
     turnoCaja,
+    egresos,
     estadias,
     cargando,
     error,
     metricas,
     filtroEstado,
     setFiltroEstado,
+    filtroFecha,
+    setFiltroFecha,
+    limite,
+    setLimite,
+    pagina,
+    setPagina,
+    paginacion,
     busqueda,
     setBusqueda,
     modalAbonoAbierto,
     setModalAbonoAbierto,
+    modalEgresoAbierto,
+    setModalEgresoAbierto,
     modalAbrirCajaAbierto,
     setModalAbrirCajaAbierto,
     modalCerrarCajaAbierto,
@@ -178,7 +234,9 @@ export function useFacturacion() {
     abrirCaja,
     cerrarCaja,
     registrarAbono,
+    registrarEgreso,
     emitirFacturaEstadia,
+    remitirDian,
     verCuentaFolio,
     recargar: cargarDatos,
   };

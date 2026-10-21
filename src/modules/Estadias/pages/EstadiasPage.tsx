@@ -2,12 +2,22 @@ import { useEstadias } from '../hooks/useEstadias';
 import { EstadiasTable } from '../components/EstadiasTable';
 import { CheckInModal } from '../components/CheckInModal';
 import { EstadiaDetalleModal } from '../components/EstadiaDetalleModal';
+import { InformeHuespedModal } from '../components/InformeHuespedModal';
+import { EmitirFacturaModal } from '@/modules/Facturacion/components/EmitirFacturaModal';
+import { CuentaFolioModal } from '@/modules/Facturacion/components/CuentaFolioModal';
+import { RegistrarAbonoModal } from '@/modules/Facturacion/components/RegistrarAbonoModal';
+import { RegistrarConsumoModal } from '@/modules/Facturacion/components/RegistrarConsumoModal';
+import { facturacionService } from '@/modules/Facturacion/services/facturacionService';
+import type { CuentaCentralizadaEstadia, RegistrarRecaudoDTO } from '@/modules/Facturacion/types/facturacion.types';
+import { alertaService } from '@/utils/alertaService';
+import { useState } from 'react';
 import { Loading, ErrorState, Button } from '@/components';
 import { Plus, Search, Users, CalendarCheck, DollarSign } from 'lucide-react';
 
 export function EstadiasPage() {
   const {
     estadias,
+    todasLasEstadias,
     cargando,
     error,
     metricas,
@@ -20,11 +30,71 @@ export function EstadiasPage() {
     modalDetalleAbierto,
     setModalDetalleAbierto,
     estadiaSeleccionada,
+    modalFacturacionAbierto,
+    setModalFacturacionAbierto,
+    estadiaIdFacturar,
     abrirDetalle,
     registrarCheckIn,
     realizarCheckOut,
+    emitirFactura,
     recargar,
   } = useEstadias();
+
+  const [modalFolioAbierto, setModalFolioAbierto] = useState(false);
+  const [folioActual, setFolioActual] = useState<CuentaCentralizadaEstadia | null>(null);
+
+  const [modalConsumoAbierto, setModalConsumoAbierto] = useState(false);
+  const [estadiaIdOperacion, setEstadiaIdOperacion] = useState<number | null>(null);
+  const [estadiaIdInforme, setEstadiaIdInforme] = useState<number | null>(null);
+
+  // Modal para liquidar abono cuando hay saldo pendiente
+  const [modalAbonoAbierto, setModalAbonoAbierto] = useState(false);
+  const [estadiaIdAbono, setEstadiaIdAbono] = useState<number | null>(null);
+
+  const handleAbrirAbono = (estadiaId: number) => {
+    setEstadiaIdAbono(estadiaId);
+    setModalAbonoAbierto(true);
+  };
+
+  const handleRegistrarAbono = async (datos: RegistrarRecaudoDTO): Promise<boolean> => {
+    try {
+      await facturacionService.registrarRecaudo(datos);
+      await recargar();
+      alertaService.exito('Abono Registrado', 'El pago ha sido registrado correctamente.');
+      return true;
+    } catch (err: any) {
+      alertaService.error('Error al registrar abono', err?.response?.data?.message || 'No fue posible registrar el abono.');
+      return false;
+    }
+  };
+
+  const handleCheckOut = async (id: number): Promise<boolean> => {
+    const est = todasLasEstadias.find((e) => e.id === id);
+    const habNum = est?.habitacion_numero || String(est?.habitacion_id || '');
+    const cod = est?.codigo_estadia || `ID ${id}`;
+
+    // Confirmación interactiva antes de proceder
+    const confirm = await alertaService.confirmarCheckOut(cod, habNum);
+    if (!confirm.isConfirmed) return false;
+
+    return await realizarCheckOut(id, handleAbrirAbono);
+  };
+
+  const handleVerFolio = async (estadiaId: number) => {
+    setModalDetalleAbierto(false);
+    try {
+      const data = await facturacionService.obtenerCuentaEstadia(estadiaId);
+      setFolioActual(data);
+      setModalFolioAbierto(true);
+    } catch (err) {
+      alertaService.error('Error de Consulta', 'No se pudo obtener la cuenta centralizada de la estadía.');
+    }
+  };
+
+  const handleAbrirRegistrarConsumo = (estadiaId: number) => {
+    setEstadiaIdOperacion(estadiaId);
+    setModalConsumoAbierto(true);
+  };
 
   if (cargando) {
     return <Loading mensaje="Cargando registro de estadías..." />;
@@ -43,7 +113,7 @@ export function EstadiasPage() {
             Control de Estadías & Check-In
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Registro de huéspedes, acompañantes y liquidación de salidas (RF-004, RF-005, RF-006).
+            Registro de huéspedes, acompañantes y liquidación de salidas.
           </p>
         </div>
 
@@ -144,8 +214,9 @@ export function EstadiasPage() {
       <EstadiasTable
         estadias={estadias}
         onVerDetalle={abrirDetalle}
-        onCheckOut={realizarCheckOut}
+        onCheckOut={handleCheckOut}
         onNuevoCheckIn={() => setModalCheckInAbierto(true)}
+        onImprimirInforme={(id) => setEstadiaIdInforme(id)}
       />
 
       {/* Modales */}
@@ -159,7 +230,56 @@ export function EstadiasPage() {
         isOpen={modalDetalleAbierto}
         estadia={estadiaSeleccionada}
         onClose={() => setModalDetalleAbierto(false)}
-        onCheckOut={realizarCheckOut}
+        onCheckOut={handleCheckOut}
+        onVerFolio={handleVerFolio}
+        onEstadiaActualizada={recargar}
+        onImprimirInforme={(id) => {
+          setModalDetalleAbierto(false);
+          setEstadiaIdInforme(id);
+        }}
+      />
+
+      <InformeHuespedModal
+        isOpen={estadiaIdInforme !== null}
+        estadiaId={estadiaIdInforme}
+        onClose={() => setEstadiaIdInforme(null)}
+      />
+
+      <EmitirFacturaModal
+        isOpen={modalFacturacionAbierto}
+        estadias={estadias}
+        estadiaInicialId={estadiaIdFacturar}
+        onClose={() => setModalFacturacionAbierto(false)}
+        onSubmit={emitirFactura}
+      />
+
+      <CuentaFolioModal
+        isOpen={modalFolioAbierto}
+        folio={folioActual}
+        onClose={() => setModalFolioAbierto(false)}
+        onRegistrarConsumo={handleAbrirRegistrarConsumo}
+      />
+
+      <RegistrarConsumoModal
+        isOpen={modalConsumoAbierto}
+        estadiaId={estadiaIdOperacion}
+        onClose={() => setModalConsumoAbierto(false)}
+        onSuccess={() => {
+          if (estadiaIdOperacion) handleVerFolio(estadiaIdOperacion);
+          recargar();
+        }}
+      />
+
+      {/* Modal para pagar / registrar abono ante saldo pendiente en Check-Out */}
+      <RegistrarAbonoModal
+        isOpen={modalAbonoAbierto}
+        estadias={todasLasEstadias}
+        estadiaInicialId={estadiaIdAbono}
+        onClose={() => {
+          setModalAbonoAbierto(false);
+          setEstadiaIdAbono(null);
+        }}
+        onSubmit={handleRegistrarAbono}
       />
     </div>
   );

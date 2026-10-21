@@ -4,10 +4,12 @@ import {
   crearHabitacion as srvCrearHabitacion,
   cambiarEstado as srvCambiarEstado,
   eliminarHabitacion as srvEliminarHabitacion,
+  updateHabitacion as srvUpdateHabitacion,
   checkIn,
   checkOut,
 } from '../services/habitacionesService';
 import type { Habitacion, EstadoHabitacion, CheckInDTO } from '../types/habitacion.types';
+import { alertaService } from '@/utils/alertaService';
 
 export function useHabitaciones() {
   const [habitaciones, setHabitaciones] = useState<Habitacion[]>([]);
@@ -17,6 +19,7 @@ export function useHabitaciones() {
   // Filtros interactivos
   const [filtroPiso, setFiltroPiso] = useState<number | 'todos'>('todos');
   const [filtroEstado, setFiltroEstado] = useState<EstadoHabitacion | 'todos'>('todos');
+  const [filtroClima, setFiltroClima] = useState<'todos' | 'aire' | 'ventilador'>('todos');
   const [busqueda, setBusqueda] = useState<string>('');
 
   // Modal de habitación seleccionada y creación
@@ -64,6 +67,9 @@ export function useHabitaciones() {
     return habitaciones.filter((hab) => {
       if (filtroPiso !== 'todos' && hab.piso !== filtroPiso) return false;
       if (filtroEstado !== 'todos' && hab.estado !== filtroEstado) return false;
+      
+      if (filtroClima === 'aire' && !hab.tieneAire) return false;
+      if (filtroClima === 'ventilador' && !hab.tieneVentilador) return false;
 
       if (busqueda.trim()) {
         const query = busqueda.trim().toLowerCase();
@@ -75,7 +81,7 @@ export function useHabitaciones() {
 
       return true;
     });
-  }, [habitaciones, filtroPiso, filtroEstado, busqueda]);
+  }, [habitaciones, filtroPiso, filtroEstado, filtroClima, busqueda]);
 
   const cambiarEstado = async (habitacionId: string, nuevoEstado: EstadoHabitacion) => {
     try {
@@ -97,6 +103,18 @@ export function useHabitaciones() {
       return true;
     } catch {
       alert('Error al registrar la habitación.');
+      return false;
+    }
+  };
+
+  const editarHabitacion = async (habitacionId: string, datos: import('../types/habitacion.types').ActualizarHabitacionDTO) => {
+    try {
+      const editada = await srvUpdateHabitacion(habitacionId, datos);
+      setHabitaciones((prev) => prev.map((h) => (h.id === habitacionId ? editada : h)));
+      setModalCrearHabitacionAbierto(false);
+      return true;
+    } catch {
+      alert('Error al actualizar la habitación.');
       return false;
     }
   };
@@ -132,9 +150,15 @@ export function useHabitaciones() {
       const habActualizada = await checkOut(habitacionId);
       setHabitaciones((prev) => prev.map((h) => (h.id === habitacionId ? habActualizada : h)));
       setHabitacionSeleccionada(null);
+      alertaService.exito('Check-Out Exitoso', 'La salida del huésped ha sido registrada y la habitación pasó a limpieza.');
       return true;
-    } catch {
-      alert('Error al procesar el check-out.');
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Error al procesar el check-out.';
+      if (msg.includes('saldo pendiente')) {
+        alertaService.saldoPendienteCheckOut(0);
+      } else {
+        alertaService.error('No se pudo realizar el Check-Out', msg);
+      }
       return false;
     }
   };
@@ -149,6 +173,8 @@ export function useHabitaciones() {
     setFiltroPiso,
     filtroEstado,
     setFiltroEstado,
+    filtroClima,
+    setFiltroClima,
     busqueda,
     setBusqueda,
     habitacionSeleccionada,
@@ -157,6 +183,7 @@ export function useHabitaciones() {
     setModalCrearHabitacionAbierto,
     cambiarEstado,
     crearHabitacion,
+    editarHabitacion,
     eliminarHabitacion,
     realizarCheckIn,
     realizarCheckOut,

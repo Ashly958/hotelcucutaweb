@@ -16,6 +16,7 @@ export function useReportes() {
   const [tabActivo, setTabActivo] = useState<ReportesTab>('ocupacion');
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
 
   // Filtros
   const [filtros, setFiltros] = useState<FiltroReportes>({
@@ -40,6 +41,7 @@ export function useReportes() {
     try {
       setCargando(true);
       setError(null);
+      setRefreshTrigger(p => p + 1);
 
       switch (tabActivo) {
         case 'ocupacion': {
@@ -122,7 +124,7 @@ export function useReportes() {
 
   const exportarDianCsv = () => {
     if (dianData?.facturas) {
-      reportesService.exportarCsvDian(dianData.facturas, dianData.resolucion_dian?.prefijo ?? 'HC');
+      reportesService.exportarCsvDian(dianData.facturas, 'HC');
     }
   };
 
@@ -140,6 +142,7 @@ export function useReportes() {
     sireData,
     mincitData,
     auditoriaData,
+    refreshTrigger,
     recargar: cargarDatosTab,
     actualizarSire,
     ejecutarCierreAuditoria,

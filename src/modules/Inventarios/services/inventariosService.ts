@@ -4,6 +4,7 @@ import type {
   Categoria,
   Producto,
   Movimiento,
+  ProductoPresentacion,
   GuardarCategoriaDTO,
   GuardarProductoDTO,
   RegistrarMovimientoDTO,
@@ -70,5 +71,23 @@ export const inventariosService = {
   async registrarMovimiento(datos: RegistrarMovimientoDTO): Promise<Movimiento> {
     const res = await api.post<RespuestaApi<Movimiento>>('/inventarios/movimientos', datos);
     return res.data.data;
+  },
+
+  async obtenerPresentaciones(productoId: number): Promise<ProductoPresentacion[]> {
+    try {
+      const res = await api.get<RespuestaApi<ProductoPresentacion[]>>(`/inventarios/productos/${productoId}/presentaciones`);
+      return res.data.data;
+    } catch {
+      return [];
+    }
+  },
+
+  async guardarPresentacion(productoId: number, datos: { nombre_presentacion: string; factor_conversion: number; precio_compra_presentacion?: number; codigo_barras?: string }): Promise<ProductoPresentacion> {
+    const res = await api.post<RespuestaApi<ProductoPresentacion>>(`/inventarios/productos/${productoId}/presentaciones`, datos);
+    return res.data.data;
+  },
+
+  async eliminarPresentacion(productoId: number, id: number): Promise<void> {
+    await api.delete<RespuestaApi<null>>(`/inventarios/productos/${productoId}/presentaciones/${id}`);
   },
 };

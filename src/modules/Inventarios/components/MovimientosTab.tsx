@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowDownLeft, ArrowUpRight, AlertCircle, History, PackageMinus } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, AlertCircle, History, PackageMinus, ArrowUpDown } from 'lucide-react';
 import type { Movimiento, TipoMovimientoInventario } from '../types/inventario.types';
 import { EmptyState } from '@/components/EmptyState';
 
@@ -47,6 +47,16 @@ export function MovimientosTab({
       clase: 'bg-purple-50 text-purple-700 border-purple-200/80',
       icono: <PackageMinus className="w-3.5 h-3.5 text-purple-600" />,
     },
+    traslado_habitaciones: {
+      label: 'Traslado Habitaciones',
+      clase: 'bg-purple-50 text-purple-700 border-purple-200/80',
+      icono: <ArrowUpDown className="w-3.5 h-3.5 text-purple-600" />,
+    },
+    traslado_operativas: {
+      label: 'Traslado Áreas Operativas',
+      clase: 'bg-teal-50 text-teal-700 border-teal-200/80',
+      icono: <ArrowUpDown className="w-3.5 h-3.5 text-teal-600" />,
+    },
     salida_merma: {
       label: 'Baja / Merma (RN-013)',
       clase: 'bg-red-50 text-red-700 border-red-200/80',
@@ -61,6 +71,11 @@ export function MovimientosTab({
       label: 'Ajuste de Conteo',
       clase: 'bg-amber-50 text-amber-800 border-amber-200/80',
       icono: <History className="w-3.5 h-3.5 text-amber-600" />,
+    },
+    traslado_nevera: {
+      label: 'Traslado a Nevera',
+      clase: 'bg-indigo-50 text-indigo-700 border-indigo-200/80',
+      icono: <ArrowUpRight className="w-3.5 h-3.5 text-indigo-600" />,
     },
   };
 

@@ -1,13 +1,30 @@
-export interface ServicioGuia {
+// ─── Tipos del Módulo Onboarding (Guía Pública del Hotel) ─────────────────────
+
+export interface TipoHabitacion {
   nombre: string;
-  ubicacion: string;
-  horario: string;
-  modalidad: string;
-  icono: string;
+  descripcion: string;
+  precio: string;
+  camas: string;
+  maxPersonas: string;
+  amenidades: string[];
+  destacado: boolean;
+  badge?: string;
+  imagenUrl?: string;
 }
 
-export interface NormaConvivencia {
+export interface InfoPiso {
+  nivel: number;
+  nombre: string;
+  habitaciones: string;
+  caracteristicas: string[];
+  areas: string;
+  // NOTA: Las credenciales WiFi (red, clave) son información
+  // operativa interna y NO se exponen en la guía pública.
+}
+
+export interface PoliticaHotel {
   titulo: string;
   descripcion: string;
-  tipo: 'familia' | 'silencio' | 'humo' | 'seguridad';
+  colorClase: 'red' | 'blue' | 'emerald' | 'purple' | 'amber';
+  icono: 'smoke' | 'volume' | 'users' | 'car' | 'shield';
 }

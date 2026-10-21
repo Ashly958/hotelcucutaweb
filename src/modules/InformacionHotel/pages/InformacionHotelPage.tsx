@@ -4,7 +4,7 @@ import { Loading, ErrorState } from '@/components';
 import { CheckCircle2 } from 'lucide-react';
 
 export function InformacionHotelPage() {
-  const { info, cargando, guardando, error, mensajeExito, guardarInformacion, recargar } =
+  const { info, precios, cargando, guardando, error, mensajeExito, guardarInformacion, recargar } =
     useInformacionHotel();
 
   if (cargando) {
@@ -23,7 +23,7 @@ export function InformacionHotelPage() {
           Información del Hotel & Políticas
         </h1>
         <p className="text-xs text-slate-500 mt-0.5">
-          Configuración central de datos tributarios, conectividad Wi-Fi, horarios de Check-Out y normas de convivencia familiar.
+          Configuración central de datos tributarios, conectividad Wi-Fi, horarios de Check-Out, normas de convivencia familiar y precios dinámicos.
         </p>
       </div>
 
@@ -37,6 +37,7 @@ export function InformacionHotelPage() {
       {/* Formulario */}
       <InformacionHotelForm
         info={info}
+        preciosOnboarding={precios}
         guardando={guardando}
         onGuardar={guardarInformacion}
       />
