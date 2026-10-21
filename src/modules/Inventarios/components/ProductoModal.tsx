@@ -27,7 +27,8 @@ export function ProductoModal({
   const [unidadMedida, setUnidadMedida] = useState('unidad');
   const [precioCompra, setPrecioCompra] = useState<number>(0);
   const [precioVenta, setPrecioVenta] = useState<number>(0);
-  const [stockActual, setStockActual] = useState<number>(10);
+  const [stockNevera, setStockNevera] = useState<number>(10);
+  const [stockBodega, setStockBodega] = useState<number>(0);
   const [stockMinimoAlerta, setStockMinimoAlerta] = useState<number>(5);
 
   useEffect(() => {
@@ -39,7 +40,8 @@ export function ProductoModal({
       setUnidadMedida(producto.unidadMedida || producto.unidad_medida || 'unidad');
       setPrecioCompra(producto.precioCompra || producto.precio_compra || 0);
       setPrecioVenta(producto.precioVenta || producto.precio_venta || 0);
-      setStockActual(producto.stockActual ?? producto.stock_actual ?? 0);
+      setStockNevera(producto.stockNevera ?? producto.stock_nevera ?? 0);
+      setStockBodega(producto.stockBodega ?? producto.stock_bodega ?? 0);
       setStockMinimoAlerta(producto.stockMinimoAlerta ?? producto.stock_minimo_alerta ?? 5);
     } else {
       setCategoriaId(categorias[0]?.id || 1);
@@ -49,7 +51,8 @@ export function ProductoModal({
       setUnidadMedida('unidad');
       setPrecioCompra(0);
       setPrecioVenta(0);
-      setStockActual(10);
+      setStockNevera(10);
+      setStockBodega(0);
       setStockMinimoAlerta(5);
     }
   }, [producto, categorias, isOpen]);
@@ -67,7 +70,8 @@ export function ProductoModal({
       unidadMedida,
       precioCompra,
       precioVenta,
-      stockActual,
+      stockNevera,
+      stockBodega,
       stockMinimoAlerta,
     });
     setCargando(false);
@@ -190,14 +194,28 @@ export function ProductoModal({
 
           <div>
             <label className="block text-[11px] font-medium text-slate-600 mb-1">
-              Stock Inicial
+              Stock en Nevera (Venta)
             </label>
             <input
               type="number"
               min="0"
-              value={stockActual}
+              value={stockNevera}
               disabled={!!producto}
-              onChange={(e) => setStockActual(parseInt(e.target.value) || 0)}
+              onChange={(e) => setStockNevera(parseInt(e.target.value) || 0)}
+              className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-mono disabled:opacity-50"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-medium text-slate-600 mb-1">
+              Stock en Bodega (Respaldo)
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={stockBodega}
+              disabled={!!producto}
+              onChange={(e) => setStockBodega(parseInt(e.target.value) || 0)}
               className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-mono disabled:opacity-50"
             />
           </div>

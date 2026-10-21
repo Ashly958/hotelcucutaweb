@@ -1,4 +1,4 @@
-import { ShieldCheck, AlertCircle, Unlock, Lock, DollarSign } from 'lucide-react';
+import { ShieldCheck, AlertCircle, Unlock, Lock, DollarSign, ArrowDownCircle } from 'lucide-react';
 import { Button } from '@/components/Button';
 import type { TurnoCaja } from '../types/facturacion.types';
 
@@ -7,6 +7,7 @@ interface CajaControlCardProps {
   onAbrirCaja: () => void;
   onCerrarCaja: () => void;
   onRegistrarAbono: () => void;
+  onRegistrarEgreso?: () => void;
 }
 
 export function CajaControlCard({
@@ -14,6 +15,7 @@ export function CajaControlCard({
   onAbrirCaja,
   onCerrarCaja,
   onRegistrarAbono,
+  onRegistrarEgreso,
 }: CajaControlCardProps) {
   const estaAbierta = caja?.estado === 'abierta';
 
@@ -53,9 +55,17 @@ export function CajaControlCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {estaAbierta ? (
             <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onRegistrarEgreso}
+                icono={<ArrowDownCircle className="w-3.5 h-3.5 text-rose-600" />}
+              >
+                Registrar Egreso / Gasto
+              </Button>
               <Button
                 variant="primary"
                 size="sm"
@@ -87,12 +97,12 @@ export function CajaControlCard({
       </div>
 
       {/* Indicadores Financieros de Caja */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-4">
         <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100">
           <span className="text-[10px] uppercase font-semibold text-slate-400 block mb-0.5">
             Base Inicial en Caja
           </span>
-          <div className="text-lg font-display font-bold text-slate-800">
+          <div className="text-base sm:text-lg font-display font-bold text-slate-800">
             ${(caja?.base_inicial || 0).toLocaleString('es-CO')}
           </div>
           <span className="text-[10px] text-slate-400">Efectivo inicial</span>
@@ -102,23 +112,33 @@ export function CajaControlCard({
           <span className="text-[10px] uppercase font-semibold text-slate-400 block mb-0.5">
             Recaudos del Turno
           </span>
-          <div className="text-lg font-display font-bold text-emerald-700">
-            ${(caja?.total_recaudado || 0).toLocaleString('es-CO')}
+          <div className="text-base sm:text-lg font-display font-bold text-emerald-700">
+            +${(caja?.total_recaudado || 0).toLocaleString('es-CO')}
           </div>
-          <span className="text-[10px] text-slate-400">Cobros recibidos</span>
+          <span className="text-[10px] text-slate-400">Entradas efectivo</span>
+        </div>
+
+        <div className="p-3 bg-rose-50/50 rounded-xl border border-rose-100/80">
+          <span className="text-[10px] uppercase font-semibold text-rose-500 block mb-0.5">
+            Egresos de Caja Menor
+          </span>
+          <div className="text-base sm:text-lg font-display font-bold text-rose-700">
+            -${(caja?.total_egresos || 0).toLocaleString('es-CO')}
+          </div>
+          <span className="text-[10px] text-rose-400">Gastos del turno</span>
         </div>
 
         <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100">
           <span className="text-[10px] uppercase font-semibold text-slate-400 block mb-0.5">
-            Saldo Total Esperado
+            Efectivo Esperado
           </span>
-          <div className="text-lg font-display font-bold text-slate-900">
-            ${(caja?.saldo_esperado || 0).toLocaleString('es-CO')}
+          <div className="text-base sm:text-lg font-display font-bold text-slate-900">
+            ${(caja?.saldo_esperado ?? caja?.total_efectivo ?? 0).toLocaleString('es-CO')}
           </div>
-          <span className="text-[10px] text-slate-400">Base + Recaudos</span>
+          <span className="text-[10px] text-slate-400">Base + Recaudos - Egresos</span>
         </div>
 
-        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 col-span-2 sm:col-span-1">
           <span className="text-[10px] uppercase font-medium text-slate-400 block mb-0.5">
             Auditoría & Arqueo
           </span>

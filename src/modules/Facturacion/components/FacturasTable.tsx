@@ -92,7 +92,7 @@ export function FacturasTable({
                         ${saldo.toLocaleString('es-CO')}
                       </span>
                     ) : (
-                      <span className="text-emerald-600 font-mono">$0</span>
+                      <span className="text-emerald-600 font-mono font-semibold">$0 (Al día)</span>
                     )}
                   </td>
 

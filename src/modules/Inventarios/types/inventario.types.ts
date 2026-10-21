@@ -4,6 +4,18 @@ export interface Categoria {
   descripcion?: string;
 }
 
+export interface ProductoPresentacion {
+  id: number;
+  producto_id: number;
+  nombre_presentacion: string;
+  factor_conversion: number;
+  precio_compra_presentacion?: number;
+  codigo_barras?: string;
+  activo?: boolean;
+}
+
+export type CentroConsumo = 'bodega' | 'nevera' | 'habitaciones' | 'areas_operativas';
+
 export interface Producto {
   id: number;
   categoriaId?: number;
@@ -20,22 +32,41 @@ export interface Producto {
   precio_compra?: number;
   precioVenta?: number;
   precio_venta?: number;
-  stockActual: number;
-  stock_actual?: number;
+  stockNevera: number;
+  stock_nevera?: number;
+  stockBodega: number;
+  stock_bodega?: number;
+  stockHabitaciones?: number;
+  stock_habitaciones?: number;
+  stockAreasOperativas?: number;
+  stock_areas_operativas?: number;
   stockMinimoAlerta?: number;
   stock_minimo_alerta?: number;
   activo?: boolean;
   bajo_stock?: boolean;
   bajoStock?: boolean;
+  presentaciones?: ProductoPresentacion[];
 }
+
+export type FiltroUbicacionInventario =
+  | 'todos'
+  | 'bodega'
+  | 'nevera'
+  | 'habitaciones'
+  | 'areas_operativas'
+  | 'por_reponer'
+  | 'agotados';
 
 export type TipoMovimientoInventario =
   | 'entrada_compra'
+  | 'traslado_nevera'
+  | 'salida_dotacion'
+  | 'traslado_habitaciones'
+  | 'traslado_operativas'
   | 'salida_merma'
   | 'ajuste_merma'
   | 'salida_consumo'
   | 'salida_consumo_huesped'
-  | 'salida_dotacion'
   | 'ajuste_inventario';
 
 export interface Movimiento {
@@ -44,6 +75,12 @@ export interface Movimiento {
   productoId?: number;
   producto_nombre?: string;
   productoNombre?: string;
+  presentacion_id?: number | null;
+  presentacionId?: number | null;
+  centro_consumo?: CentroConsumo;
+  centroConsumo?: CentroConsumo;
+  cantidad_presentacion?: number | null;
+  cantidadPresentacion?: number | null;
   usuario_id?: number;
   usuarioId?: number;
   usuario_nombre?: string;
@@ -71,7 +108,10 @@ export interface GuardarProductoDTO {
   unidadMedida?: string;
   precioCompra?: number;
   precioVenta?: number;
-  stockActual?: number;
+  stockNevera?: number;
+  stockBodega?: number;
+  stockHabitaciones?: number;
+  stockAreasOperativas?: number;
   stockMinimoAlerta?: number;
   activo?: boolean;
 }
@@ -83,8 +123,11 @@ export interface GuardarCategoriaDTO {
 
 export interface RegistrarMovimientoDTO {
   producto_id: number;
+  presentacion_id?: number;
+  centro_consumo?: CentroConsumo;
   tipo_movimiento: TipoMovimientoInventario;
   cantidad: number;
   motivo?: string;
   estadia_id?: number;
 }
+

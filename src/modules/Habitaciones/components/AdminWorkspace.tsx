@@ -182,7 +182,7 @@ export function AdminWorkspace({ metricas }: AdminWorkspaceProps) {
               : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
           }`}
         >
-          Reporte SIRE & Policía Nacional (RF-008)
+          Reporte SIRE & Policía Nacional
         </button>
 
         <button
@@ -193,7 +193,7 @@ export function AdminWorkspace({ metricas }: AdminWorkspaceProps) {
               : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
           }`}
         >
-          Control de Usuarios & Roles (RF-023)
+          Control de Usuarios & Roles
         </button>
 
         <button
@@ -217,7 +217,7 @@ export function AdminWorkspace({ metricas }: AdminWorkspaceProps) {
                 Libro de Huéspedes para Autoridades (SIRE / Policía Nacional)
               </h3>
               <p className="text-xs text-slate-500">
-                Registro obligatorio y exportable conforme a los requerimientos RF-008 y RF-022.
+                Registro obligatorio y exportable.
               </p>
             </div>
 
@@ -275,7 +275,7 @@ export function AdminWorkspace({ metricas }: AdminWorkspaceProps) {
         <div className="bg-white rounded-2xl border border-slate-200/70 p-6 shadow-soft space-y-4">
           <div className="border-b border-slate-100 pb-3">
             <h3 className="font-display font-bold text-base text-slate-900 tracking-tight">
-              Personal Autorizado y Delimitación de Roles (RF-023)
+              Personal Autorizado y Delimitación de Roles
             </h3>
             <p className="text-xs text-slate-500">
               Cada perfil opera estrictamente en su ámbito sin interferir en los demás módulos.
@@ -333,7 +333,7 @@ export function AdminWorkspace({ metricas }: AdminWorkspaceProps) {
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
               <span className="text-xs text-slate-500">Servicio de Lavandería</span>
               <div className="text-xl font-bold font-display text-slate-900 tracking-tight">$6.000 COP</div>
-              <p className="text-[10px] text-slate-400">Por prenda · Piso 5 (RF-010)</p>
+              <p className="text-[10px] text-slate-400">Por prenda · Piso 5</p>
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { Button } from '@/components/Button';
 import { ArrowUpDown, BedDouble, ShieldAlert, Package } from 'lucide-react';
 import type { Producto, RegistrarMovimientoDTO, TipoMovimientoInventario } from '../types/inventario.types';
 import { estadiasService } from '@/modules/Estadias/services/estadiasService';
+import { facturacionService } from '@/modules/Facturacion/services/facturacionService';
 import type { Estadia } from '@/modules/Estadias/types/estadia.types';
 
 interface MovimientoModalProps {
@@ -24,11 +25,14 @@ export function MovimientoModal({
   onSubmit,
 }: MovimientoModalProps) {
   const [cargando, setCargando] = useState(false);
-  const [tipo, setTipo] = useState<TipoMovimientoInventario>('entrada_compra');
+  const [tipo, setTipo] = useState<TipoMovimientoInventario>('traslado_nevera');
   const [cantidad, setCantidad] = useState<number>(1);
   const [motivo, setMotivo] = useState<string>('');
   const [estadiaId, setEstadiaId] = useState<string>('');
   const [estadiasActivas, setEstadiasActivas] = useState<Estadia[]>([]);
+  const [pagoInmediato, setPagoInmediato] = useState(false);
+  const [presentacionId, setPresentacionId] = useState<string>('');
+  const [centroConsumo, setCentroConsumo] = useState<'bodega' | 'nevera' | 'habitaciones' | 'areas_operativas'>('bodega');
 
   useEffect(() => {
     if (isOpen) {
@@ -45,9 +49,21 @@ export function MovimientoModal({
 
   if (!producto) return null;
 
-  const stockActual = producto.stockActual ?? producto.stock_actual ?? 0;
+  const presentaciones = producto.presentaciones || [];
+  const presentacionSeleccionada = presentaciones.find(p => p.id === parseInt(presentacionId));
+  const factorConversion = presentacionSeleccionada ? presentacionSeleccionada.factor_conversion : 1;
+  const unidadesTotalesAMover = cantidad * factorConversion;
+
+  const stockNevera = producto.stockNevera ?? producto.stock_nevera ?? 0;
+  const stockBodega = producto.stockBodega ?? producto.stock_bodega ?? 0;
   const esMermaOAjuste = tipo === 'salida_merma' || tipo === 'ajuste_merma' || tipo === 'ajuste_inventario';
   const esConsumo = tipo === 'salida_consumo' || tipo === 'salida_consumo_huesped';
+
+  const stockDisponibleParaMovimiento = () => {
+    if (tipo === 'traslado_nevera' || tipo === 'salida_dotacion' || tipo === 'traslado_habitaciones' || tipo === 'traslado_operativas') return stockBodega;
+    if (tipo === 'salida_consumo' || tipo === 'salida_consumo_huesped' || tipo === 'salida_merma' || tipo === 'ajuste_merma') return stockNevera;
+    return 999999; // entrada_compra u otros no restan
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,8 +72,8 @@ export function MovimientoModal({
       return;
     }
 
-    if (tipo !== 'entrada_compra' && cantidad > stockActual) {
-      alert(`No hay suficiente stock disponible. Existencias actuales: ${stockActual} ${producto.unidadMedida || producto.unidad_medida || 'und'}`);
+    if (tipo !== 'entrada_compra' && unidadesTotalesAMover > stockDisponibleParaMovimiento()) {
+      alert(`No hay suficiente stock disponible para esta operación. Disponible en origen: ${stockDisponibleParaMovimiento()} ${producto.unidadMedida || producto.unidad_medida || 'und'}`);
       return;
     }
 
@@ -67,27 +83,51 @@ export function MovimientoModal({
     }
 
     setCargando(true);
+    const tipoFinal = (esConsumo && estadiaId) ? 'salida_consumo_huesped' : tipo;
+
     const exito = await onSubmit({
       producto_id: producto.id,
-      tipo_movimiento: tipo,
+      presentacion_id: presentacionId ? parseInt(presentacionId) : undefined,
+      centro_consumo: tipo === 'entrada_compra' ? centroConsumo : undefined,
+      tipo_movimiento: tipoFinal as TipoMovimientoInventario,
       cantidad,
-      motivo: motivo.trim() || undefined,
+      motivo: motivo.trim() || (pagoInmediato ? 'Consumo pagado de inmediato' : undefined),
       estadia_id: esConsumo && estadiaId ? parseInt(estadiaId) : undefined,
     });
+    
+    if (exito && esConsumo && estadiaId && pagoInmediato) {
+      const precioUnitario = producto.precioVenta || producto.precio_venta || 0;
+      const valorTotal = precioUnitario * unidadesTotalesAMover;
+      if (valorTotal > 0) {
+        try {
+          await facturacionService.registrarRecaudo({
+            valor: valorTotal,
+            metodo_pago: 'efectivo',
+            concepto: 'Pago inmediato de consumos',
+            estadia_id: parseInt(estadiaId)
+          });
+        } catch (e: any) {
+          const errMsg = e.response?.data?.message || 'Error al registrar el cobro en caja (el consumo sí fue descontado del stock).';
+          alert(errMsg);
+        }
+      }
+    }
+
     setCargando(false);
     if (exito) {
       setMotivo('');
       setEstadiaId('');
       setCantidad(1);
+      setPresentacionId('');
+      setPagoInmediato(false);
     }
   };
 
   const opcionesTipo: { id: TipoMovimientoInventario; label: string; desc: string }[] = [
-    { id: 'entrada_compra', label: 'Entrada por Compra', desc: 'Recepción de pedido o proveedor' },
-    { id: 'salida_consumo', label: 'Consumo Huésped / Minibar', desc: 'Cargo directo a habitación o folio (RF-015)' },
-    { id: 'salida_dotacion', label: 'Dotación Operación', desc: 'Lencería, piso 5 o aseo (RF-014)' },
-    { id: 'salida_merma', label: 'Baja / Merma (RN-013)', desc: 'Deterioro irreparable o vencimiento' },
-    { id: 'ajuste_inventario', label: 'Ajuste de Conteo', desc: 'Ajuste físico de existencias' },
+    { id: 'entrada_compra', label: 'Entrada / Compra', desc: 'Ingreso de mercancía por presentación o unidad' },
+    { id: 'traslado_nevera', label: 'Traslado a Nevera', desc: 'Reponer nevera desde la bodega' },
+    { id: 'salida_dotacion', label: 'Dotación Habitaciones', desc: 'Amenities/lencería a habitaciones' },
+    { id: 'salida_consumo', label: 'Consumo Huésped / Minibar', desc: 'Sale de nevera para habitación' },
   ];
 
   return (
@@ -119,7 +159,7 @@ export function MovimientoModal({
                 {productos.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.codigoReferencia || p.codigo_referencia ? `[${p.codigoReferencia || p.codigo_referencia}] ` : ''}
-                    {p.nombre} — Stock: {p.stockActual ?? p.stock_actual ?? 0} {p.unidadMedida || p.unidad_medida || 'und'}
+                    {p.nombre} — B: {p.stockBodega ?? p.stock_bodega ?? 0} | N: {p.stockNevera ?? p.stock_nevera ?? 0} {p.unidadMedida || p.unidad_medida || 'und'}
                   </option>
                 ))}
               </select>
@@ -130,8 +170,8 @@ export function MovimientoModal({
                 <Package className="w-4 h-4 text-slate-500" />
                 <span className="font-semibold text-slate-900">{producto.nombre}</span>
               </div>
-              <span className="text-[11px] font-mono font-bold text-slate-700">
-                Stock: {stockActual} {producto.unidadMedida || producto.unidad_medida || 'und'}
+              <span className="text-[11px] font-mono font-bold text-slate-700 text-right">
+                Bodega: {stockBodega}<br/>Nevera: {stockNevera} {producto.unidadMedida || producto.unidad_medida || 'und'}
               </span>
             </div>
           )}
@@ -166,14 +206,64 @@ export function MovimientoModal({
           </div>
         </div>
 
-        {/* Cantidad */}
+        {/* Presentación de Compra (RN-INV-01) si es entrada */}
+        {tipo === 'entrada_compra' && (
+          <div className="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-xl space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-emerald-950 text-xs">Presentación de Compra (RN-INV-01)</span>
+              <span className="text-[10px] text-emerald-700 font-medium">Conversión automática</span>
+            </div>
+            <select
+              value={presentacionId}
+              onChange={(e) => setPresentacionId(e.target.value)}
+              className="w-full p-2 bg-white border border-emerald-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+            >
+              <option value="">Unidad suelta / Mínima ({producto.unidadMedida || 'unidad'})</option>
+              {presentaciones.map((pres) => (
+                <option key={pres.id} value={pres.id}>
+                  {pres.nombre_presentacion} (x{pres.factor_conversion} {producto.unidadMedida || 'und'})
+                </option>
+              ))}
+            </select>
+
+            {/* Centro de Consumo Destino (RN-INV-03) */}
+            <div className="pt-2">
+              <label className="block text-[11px] font-medium text-emerald-900 mb-1">
+                Centro de Consumo / Destino (RN-INV-03)
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                {[
+                  { id: 'bodega', label: 'Bodega Central' },
+                  { id: 'nevera', label: 'Neveras' },
+                  { id: 'habitaciones', label: 'Habitaciones' },
+                  { id: 'areas_operativas', label: 'Áreas Operativas' },
+                ].map((centro) => (
+                  <button
+                    key={centro.id}
+                    type="button"
+                    onClick={() => setCentroConsumo(centro.id as any)}
+                    className={`px-2 py-1.5 rounded-lg text-[10px] font-bold text-center border transition-all ${
+                      centroConsumo === centro.id
+                        ? 'bg-emerald-700 text-white border-emerald-800'
+                        : 'bg-white text-emerald-900 border-emerald-200 hover:bg-emerald-100/50'
+                    }`}
+                  >
+                    {centro.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Cantidad y Conversión Calculada */}
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="text-[11px] font-medium text-slate-600">
-              Cantidad a mover *
+              {presentacionSeleccionada ? `Cantidad de [${presentacionSeleccionada.nombre_presentacion}]` : 'Cantidad a mover *'}
             </label>
             <span className="text-[10px] text-slate-400">
-              Disponible: {stockActual} {producto.unidadMedida || producto.unidad_medida || 'und'}
+              Disponible origen: {tipo === 'entrada_compra' ? '∞' : stockDisponibleParaMovimiento()} {producto.unidadMedida || producto.unidad_medida || 'und'}
             </span>
           </div>
           <input
@@ -184,6 +274,15 @@ export function MovimientoModal({
             onChange={(e) => setCantidad(parseInt(e.target.value) || 1)}
             className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base font-mono font-bold text-slate-900 outline-none focus:ring-2 focus:ring-red-600 focus:bg-white"
           />
+
+          {presentacionSeleccionada && (
+            <div className="mt-1.5 p-2 bg-slate-100 rounded-lg flex items-center justify-between text-[11px]">
+              <span className="text-slate-600">Conversión a unidad mínima:</span>
+              <span className="font-bold font-mono text-emerald-700">
+                {cantidad} × {presentacionSeleccionada.factor_conversion} = {unidadesTotalesAMover} {producto.unidadMedida || 'unidades'}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Cargo a Estadía para Consumos */}
@@ -191,7 +290,7 @@ export function MovimientoModal({
           <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-200/70 space-y-2">
             <div className="flex items-center gap-1.5 text-blue-900 font-medium">
               <BedDouble className="w-4 h-4 text-blue-600" />
-              <span>Cargar a Folio de Estadía Activa (RF-015 / RF-019)</span>
+              <span>Cargar a Folio de Estadía Activa</span>
             </div>
             <p className="text-[10px] text-blue-700">
               Al seleccionar una habitación, el consumo se sumará automáticamente a la cuenta centralizada del huésped.
@@ -208,6 +307,31 @@ export function MovimientoModal({
                 </option>
               ))}
             </select>
+
+            {estadiaId && (
+              <div className="pt-2 mt-2 border-t border-blue-200/60 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <label className="flex items-center gap-2 cursor-pointer text-[11px] font-bold text-blue-900">
+                  <input
+                    type="radio"
+                    name="metodoPago"
+                    checked={!pagoInmediato}
+                    onChange={() => setPagoInmediato(false)}
+                    className="w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  />
+                  Cargar a la Habitación
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer text-[11px] font-bold text-emerald-700">
+                  <input
+                    type="radio"
+                    name="metodoPago"
+                    checked={pagoInmediato}
+                    onChange={() => setPagoInmediato(true)}
+                    className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                  />
+                  Cobrar Ahora (Pago Inmediato)
+                </label>
+              </div>
+            )}
           </div>
         )}
 

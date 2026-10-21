@@ -8,6 +8,8 @@ export interface Huesped {
   ciudad_procedencia?: string;
   direccion?: string;
   profesion?: string;
+  es_extranjero?: boolean;
+  nacionalidad?: string;
 }
 
 export interface Acompanante {
@@ -29,11 +31,14 @@ export interface Estadia {
   fecha_prevista_checkout?: string;
   dias_estadia: number;
   valor_habitacion: number;
+  subtotal?: number;
   iva: number;
+  impuesto_consumo?: number;
   total: number;
   saldo_pendiente: number;
   abonos_totales: number;
   estado: 'activa' | 'finalizada' | 'cancelada';
+  alerta_tiempo?: 'vigente' | 'vence_hoy' | 'vencida';
   observaciones?: string;
   firma_url?: string;
   acompanantes?: Acompanante[];
@@ -49,15 +54,27 @@ export interface RegistrarCheckInDTO {
   ciudad_procedencia?: string;
   direccion?: string;
   profesion?: string;
+  es_extranjero?: boolean;
+  nacionalidad?: string;
   fecha_checkin: string;
   fecha_prevista_checkout?: string;
   dias_estadia: number;
   valor_habitacion: number;
+  subtotal?: number;
   iva?: number;
+  impuesto_consumo?: number;
   abono_inicial?: number;
   observaciones?: string;
   firma_url?: string;
   acompanantes?: Acompanante[];
+  reserva_id?: number;
+  reserva_codigo?: string;
+}
+
+export interface DatosInicialesCheckIn extends Partial<RegistrarCheckInDTO> {
+  reserva_id?: number;
+  reserva_codigo?: string;
+  anticipo_previo?: number;
 }
 
 export interface RespuestaCheckInDTO {

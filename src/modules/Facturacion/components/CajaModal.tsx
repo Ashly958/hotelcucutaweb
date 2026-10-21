@@ -88,13 +88,20 @@ export function CajaModal({
                 <span className="font-mono">${(caja?.base_inicial || 0).toLocaleString('es-CO')}</span>
               </div>
               <div className="flex justify-between text-slate-600">
-                <span>Recaudos en efectivo del turno:</span>
-                <span className="font-mono">${(caja?.total_recaudado || 0).toLocaleString('es-CO')}</span>
+                <span>Recaudos en efectivo:</span>
+                <span className="font-mono text-emerald-700">+${(caja?.total_recaudado || 0).toLocaleString('es-CO')}</span>
+              </div>
+              <div className="flex justify-between text-slate-600">
+                <span>Egresos / Gastos menores:</span>
+                <span className="font-mono text-rose-700">-${(caja?.total_egresos || 0).toLocaleString('es-CO')}</span>
               </div>
               <div className="flex justify-between font-bold text-slate-900 pt-1.5 border-t border-slate-200">
-                <span>Saldo esperado en gaveta:</span>
+                <span>Efectivo esperado en gaveta:</span>
                 <span className="font-mono">${saldoEsperado.toLocaleString('es-CO')} COP</span>
               </div>
+              <p className="text-[10px] text-slate-400 text-right">
+                (Base + Recaudos - Egresos)
+              </p>
             </div>
 
             <div>

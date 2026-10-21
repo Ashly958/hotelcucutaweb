@@ -16,6 +16,7 @@ export interface HuespedActual {
   saldoPendiente: number;
   abonoInicial: number;
   estadiaId?: number;
+  alertaTiempo?: 'vigente' | 'vence_hoy' | 'vencida';
 }
 
 export interface Habitacion {
@@ -31,6 +32,7 @@ export interface Habitacion {
   estado: EstadoHabitacion;
   huesped?: HuespedActual | null;
   observaciones?: string;
+  imagenUrl?: string;
   estadiaId?: number;
 }
 
@@ -56,17 +58,18 @@ export interface CheckInDTO {
 
 export interface CrearHabitacionDTO {
   numero: string;
-  piso: number;
-  tipo: TipoHabitacion;
-  camas: string;
-  capacidadMax: number;
-  tieneAire: boolean;
-  tieneVentilador: boolean;
-  precioNoche: number;
+  piso_id: number;
+  tipo?: TipoHabitacion;
+  detalle_camas: string;
+  capacidad_maxima: number;
+  tiene_aire: boolean;
+  tiene_ventilador: boolean;
+  precio_noche_base: number;
+  estado?: EstadoHabitacion;
   observaciones?: string;
+  imagen_url?: string;
 }
 
 export interface ActualizarHabitacionDTO extends Partial<CrearHabitacionDTO> {
   estado?: EstadoHabitacion;
 }
-

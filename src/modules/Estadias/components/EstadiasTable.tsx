@@ -1,4 +1,4 @@
-import { Eye, LogOut, CheckCircle, Clock } from 'lucide-react';
+import { Eye, LogOut, CheckCircle, Clock, Printer, AlertTriangle } from 'lucide-react';
 import type { Estadia } from '../types/estadia.types';
 import { EmptyState } from '@/components/EmptyState';
 
@@ -7,6 +7,7 @@ interface EstadiasTableProps {
   onVerDetalle: (estadia: Estadia) => void;
   onCheckOut: (id: number) => void;
   onNuevoCheckIn: () => void;
+  onImprimirInforme?: (estadiaId: number) => void;
 }
 
 export function EstadiasTable({
@@ -14,6 +15,7 @@ export function EstadiasTable({
   onVerDetalle,
   onCheckOut,
   onNuevoCheckIn,
+  onImprimirInforme,
 }: EstadiasTableProps) {
   if (estadias.length === 0) {
     return (
@@ -108,17 +110,38 @@ export function EstadiasTable({
 
                   {/* Estado */}
                   <td className="py-3.5 px-4 text-center">
-                    {esActiva ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        <Clock className="w-3 h-3" />
-                        Activa
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
-                        <CheckCircle className="w-3 h-3" />
-                        Finalizada
-                      </span>
-                    )}
+                    <div className="flex flex-col items-center gap-1">
+                      {esActiva ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <Clock className="w-3 h-3" />
+                          Activa
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                          <CheckCircle className="w-3 h-3" />
+                          Finalizada
+                        </span>
+                      )}
+
+                      {/* Alerta de Vencimiento de Estadía */}
+                      {esActiva && est.alerta_tiempo === 'vencida' && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700 border border-red-300 animate-pulse">
+                          <AlertTriangle className="w-3 h-3" />
+                          Tiempo vencido
+                        </span>
+                      )}
+                      {esActiva && est.alerta_tiempo === 'vence_hoy' && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-300">
+                          <AlertTriangle className="w-3 h-3" />
+                          Vence hoy (1:00 PM)
+                        </span>
+                      )}
+                      {esActiva && (!est.alerta_tiempo || est.alerta_tiempo === 'vigente') && (
+                        <span className="inline-flex items-center px-1.5 py-0.2 text-[9px] font-medium text-emerald-600">
+                          Vigente
+                        </span>
+                      )}
+                    </div>
                   </td>
 
                   {/* Acciones */}
@@ -131,6 +154,16 @@ export function EstadiasTable({
                       >
                         <Eye className="w-4 h-4" />
                       </button>
+
+                      {onImprimirInforme && (
+                        <button
+                          onClick={() => onImprimirInforme(est.id)}
+                          title="Imprimir informe / estado de cuenta del huésped"
+                          className="p-1.5 rounded-lg text-slate-600 hover:text-red-700 hover:bg-red-50 transition-colors"
+                        >
+                          <Printer className="w-4 h-4" />
+                        </button>
+                      )}
 
                       {esActiva && (
                         <button

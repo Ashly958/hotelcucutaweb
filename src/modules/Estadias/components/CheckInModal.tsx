@@ -2,17 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
 import { User, Plus, Trash2, Calendar, FileText, DollarSign, AlertCircle } from 'lucide-react';
-import type { RegistrarCheckInDTO, Acompanante } from '../types/estadia.types';
+import type { RegistrarCheckInDTO, Acompanante, DatosInicialesCheckIn } from '../types/estadia.types';
 import { getHabitaciones } from '@/modules/Habitaciones/services/habitacionesService';
+import { estadiasService } from '../services/estadiasService';
 import type { Habitacion } from '@/modules/Habitaciones/types/habitacion.types';
 
 interface CheckInModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (datos: RegistrarCheckInDTO) => Promise<boolean>;
+  initialHabitacionId?: number;
+  initialData?: DatosInicialesCheckIn | null;
 }
 
-export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
+export function CheckInModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  initialHabitacionId,
+  initialData,
+}: CheckInModalProps) {
   const [cargando, setCargando] = useState(false);
   const [habitaciones, setHabitaciones] = useState<Habitacion[]>([]);
   const [cargandoHabs, setCargandoHabs] = useState(false);
@@ -36,6 +45,8 @@ export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
   const [ciudadProcedencia, setCiudadProcedencia] = useState<string>('');
   const [direccion, setDireccion] = useState<string>('');
   const [profesion, setProfesion] = useState<string>('');
+  const [esExtranjero, setEsExtranjero] = useState<boolean>(false);
+  const [nacionalidad, setNacionalidad] = useState<string>('Colombiana');
 
   // Acompañantes
   const [acompanantes, setAcompanantes] = useState<Acompanante[]>([]);
@@ -44,6 +55,63 @@ export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
   const [acNumDoc, setAcNumDoc] = useState('');
   const [acParentesco, setAcParentesco] = useState('');
 
+  // Si cambia el tipo de documento a CE o Pasaporte, preactivar extranjero
+  const handleTipoDocumentoChange = (tipo: string) => {
+    setTipoDocumento(tipo);
+    if (tipo === 'CE' || tipo === 'PA') {
+      setEsExtranjero(true);
+      if (nacionalidad === 'Colombiana') {
+        setNacionalidad('Extranjera');
+      }
+    } else if (tipo === 'CC') {
+      setEsExtranjero(false);
+      setNacionalidad('Colombiana');
+    }
+  };
+
+  // Cargar datos iniciales si vienen precargados (ej. desde una reserva)
+  useEffect(() => {
+    if (isOpen && initialData) {
+      if (initialData.tipo_documento) setTipoDocumento(initialData.tipo_documento);
+      if (initialData.numero_documento) setNumeroDocumento(initialData.numero_documento);
+      if (initialData.nombres) setNombres(initialData.nombres);
+      if (initialData.apellidos) setApellidos(initialData.apellidos);
+      if (initialData.telefono) setTelefono(initialData.telefono);
+      if (initialData.ciudad_procedencia) setCiudadProcedencia(initialData.ciudad_procedencia);
+      if (initialData.direccion) setDireccion(initialData.direccion);
+      if (initialData.profesion) setProfesion(initialData.profesion);
+      if (initialData.es_extranjero !== undefined) setEsExtranjero(initialData.es_extranjero);
+      if (initialData.nacionalidad) setNacionalidad(initialData.nacionalidad);
+      if (initialData.dias_estadia) setDiasEstadia(initialData.dias_estadia);
+      if (initialData.valor_habitacion) setValorHabitacion(initialData.valor_habitacion);
+      if (initialData.abono_inicial !== undefined) setAbonoInicial(initialData.abono_inicial);
+      if (initialData.observaciones) setObservaciones(initialData.observaciones);
+      if (initialData.acompanantes) setAcompanantes(initialData.acompanantes);
+    }
+  }, [isOpen, initialData]);
+
+  useEffect(() => {
+    if (numeroDocumento.length >= 6) {
+      const timer = setTimeout(async () => {
+        const huesped = await estadiasService.buscarHuespedPorDocumento(numeroDocumento);
+        if (huesped) {
+          setNombres(huesped.nombres);
+          setApellidos(huesped.apellidos);
+          if (huesped.telefono) setTelefono(huesped.telefono);
+          if (huesped.ciudad_procedencia) setCiudadProcedencia(huesped.ciudad_procedencia);
+          if (huesped.ciudad_destino) setDireccion(huesped.ciudad_destino);
+          if (huesped.es_extranjero !== undefined) {
+            setEsExtranjero(Boolean(huesped.es_extranjero));
+          }
+          if (huesped.nacionalidad) {
+            setNacionalidad(huesped.nacionalidad);
+          }
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [numeroDocumento]);
+
   // Cargar habitaciones reales del hotel al abrir
   useEffect(() => {
     if (isOpen) {
@@ -51,19 +119,35 @@ export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
       getHabitaciones()
         .then((habs) => {
           setHabitaciones(habs);
-          // Auto-seleccionar la primera disponible
-          const disponible = habs.find((h) => h.estado === 'disponible');
-          if (disponible) {
-            const idNum = parseInt(disponible.id, 10);
+          // Si hay una habitación inicial o viene en initialData, usar esa. Si no, la primera disponible.
+          const targetHabId = initialData?.habitacion_id || initialHabitacionId;
+          let seleccionada;
+          if (targetHabId) {
+            seleccionada = habs.find((h) => parseInt(h.id, 10) === targetHabId);
+          }
+          if (!seleccionada) {
+            seleccionada = habs.find((h) => h.estado === 'disponible');
+          }
+          if (seleccionada) {
+            const idNum = parseInt(seleccionada.id, 10);
             setHabitacionId(idNum);
-            setValorHabitacion(disponible.precioNoche);
-            setAbonoInicial(disponible.precioNoche * diasEstadia);
+            if (initialData?.valor_habitacion !== undefined) {
+              setValorHabitacion(initialData.valor_habitacion);
+            } else {
+              setValorHabitacion(seleccionada.precioNoche);
+            }
+            if (initialData?.abono_inicial !== undefined) {
+              setAbonoInicial(initialData.abono_inicial);
+            } else {
+              const duracion = initialData?.dias_estadia || diasEstadia;
+              setAbonoInicial(seleccionada.precioNoche * duracion);
+            }
           }
         })
         .catch(() => {})
         .finally(() => setCargandoHabs(false));
     }
-  }, [isOpen]);
+  }, [isOpen, initialHabitacionId, initialData]);
 
   const habitacionSeleccionada = habitaciones.find(
     (h) => parseInt(h.id, 10) === habitacionId
@@ -131,13 +215,20 @@ export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
       ciudad_procedencia: ciudadProcedencia,
       direccion,
       profesion,
+      es_extranjero: esExtranjero,
+      nacionalidad: esExtranjero ? nacionalidad : 'Colombiana',
       fecha_checkin: fechaCheckin,
       fecha_prevista_checkout: fechaCheckout,
       dias_estadia: diasEstadia,
       valor_habitacion: valorHabitacion,
+      subtotal: totalCalculado,
+      iva: 0,
+      impuesto_consumo: 0,
       abono_inicial: abonoInicial,
       observaciones,
       acompanantes,
+      reserva_id: initialData?.reserva_id,
+      reserva_codigo: initialData?.reserva_codigo,
     });
 
     setCargando(false);
@@ -149,8 +240,11 @@ export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
       setCiudadProcedencia('');
       setDireccion('');
       setProfesion('');
+      setEsExtranjero(false);
+      setNacionalidad('Colombiana');
       setObservaciones('');
       setAcompanantes([]);
+      onClose(); // Cerrar el modal al registrar con éxito
     }
   };
 
@@ -159,7 +253,7 @@ export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
       isOpen={isOpen}
       onClose={onClose}
       title="Registro de Check-In Manual"
-      subtitle="Ingreso formal de huésped titular y acompañantes (RF-004 y RF-005)"
+      subtitle="Ingreso formal de huésped titular y acompañantes"
       maxWidth="2xl"
       icon={<User className="w-5 h-5 text-red-600" />}
     >
@@ -185,9 +279,9 @@ export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
               </label>
               <select
                 value={habitacionId}
-                disabled={cargandoHabs}
+                disabled={cargandoHabs || !!initialHabitacionId}
                 onChange={(e) => handleSeleccionarHabitacion(parseInt(e.target.value) || 1)}
-                className="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 shadow-2xs"
+                className="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 shadow-2xs disabled:bg-slate-100 disabled:text-slate-500"
               >
                 {habitaciones.length > 0 ? (
                   habitaciones.map((h) => {
@@ -246,11 +340,29 @@ export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
 
             <div>
               <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                Total Estadía
+                Total Estadía Liquidado
               </label>
               <div className="p-2 bg-white text-red-600 font-mono font-bold rounded-xl border border-red-200 text-center">
                 ${totalCalculado.toLocaleString('es-CO')}
               </div>
+            </div>
+          </div>
+
+          {/* Desglose Impositivo Normativo */}
+          <div className="pt-2 border-t border-slate-200/60 grid grid-cols-3 gap-2 text-center text-[11px]">
+            <div className="bg-white p-2 rounded-xl border border-slate-200">
+              <span className="text-slate-400 block text-[10px]">Subtotal (Base):</span>
+              <span className="font-mono font-semibold text-slate-800">
+                ${(totalCalculado).toLocaleString('es-CO')}
+              </span>
+            </div>
+            <div className="bg-white p-2 rounded-xl border border-slate-200">
+              <span className="text-slate-400 block text-[10px]">IVA (0% Exento):</span>
+              <span className="font-mono font-semibold text-slate-800">$0</span>
+            </div>
+            <div className="bg-white p-2 rounded-xl border border-slate-200">
+              <span className="text-slate-400 block text-[10px]">Imp. Consumo:</span>
+              <span className="font-mono font-semibold text-slate-800">$0</span>
             </div>
           </div>
         </div>
@@ -269,7 +381,7 @@ export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
               </label>
               <select
                 value={tipoDocumento}
-                onChange={(e) => setTipoDocumento(e.target.value)}
+                onChange={(e) => handleTipoDocumentoChange(e.target.value)}
                 className="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 shadow-2xs"
               >
                 <option value="CC">Cédula de Ciudadanía (CC)</option>
@@ -373,6 +485,45 @@ export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
               />
             </div>
           </div>
+
+          {/* Toggle Huésped Extranjero & Reporte SIRE */}
+          <div className="pt-2 border-t border-slate-100 mt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-red-50/40 p-3 rounded-xl border border-red-100">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={esExtranjero}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setEsExtranjero(checked);
+                  if (checked && nacionalidad === 'Colombiana') {
+                    setNacionalidad('Extranjera');
+                  } else if (!checked) {
+                    setNacionalidad('Colombiana');
+                  }
+                }}
+                className="w-4 h-4 text-red-600 rounded border-slate-300 focus:ring-red-500 focus:ring-2 accent-red-600"
+              />
+              <span className="text-xs font-semibold text-slate-800">
+                ¿Es huésped extranjero? <span className="text-red-700 font-normal">(Registrar para Reporte SIRE - Migración Colombia)</span>
+              </span>
+            </label>
+
+            {esExtranjero && (
+              <div className="w-full sm:w-64">
+                <label className="block text-[10px] font-semibold text-red-800 uppercase tracking-wider mb-1">
+                  País / Nacionalidad de Origen *
+                </label>
+                <input
+                  type="text"
+                  required={esExtranjero}
+                  placeholder="Ej. Venezolana, Estadounidense, Española"
+                  value={nacionalidad}
+                  onChange={(e) => setNacionalidad(e.target.value)}
+                  className="w-full p-1.5 bg-white border border-red-300 rounded-lg text-xs outline-none focus:border-red-600 focus:ring-2 focus:ring-red-500/10 shadow-2xs font-medium"
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Sección: Acompañantes Dinámicos con Validación de Capacidad */}
@@ -475,7 +626,7 @@ export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
           <div className="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-1.5 shadow-xs">
             <label className="block text-[11px] font-medium text-slate-700 flex items-center gap-1">
               <DollarSign className="w-3.5 h-3.5 text-red-600" />
-              <span>Abono / Pago en Efectivo al Ingreso (RN-010)</span>
+              <span>Abono / Pago en Efectivo al Ingreso</span>
             </label>
             <input
               type="number"
@@ -483,7 +634,13 @@ export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
               min="0"
               max={totalCalculado}
               value={abonoInicial}
-              onChange={(e) => setAbonoInicial(parseFloat(e.target.value) || 0)}
+              onChange={(e) => {
+                let val = parseFloat(e.target.value) || 0;
+                if (val > totalCalculado) {
+                  val = totalCalculado;
+                }
+                setAbonoInicial(val);
+              }}
               className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 outline-none focus:border-red-500 focus:bg-white"
             />
             <div className="flex justify-between text-[11px] text-slate-500 pt-0.5">

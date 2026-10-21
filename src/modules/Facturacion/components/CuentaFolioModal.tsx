@@ -1,6 +1,6 @@
 import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
-import { FileSpreadsheet, Printer, DollarSign, CheckCircle2, AlertCircle } from 'lucide-react';
+import { FileSpreadsheet, Printer, DollarSign, CheckCircle2, AlertCircle, ShoppingCart } from 'lucide-react';
 import type { CuentaCentralizadaEstadia } from '../types/facturacion.types';
 
 interface CuentaFolioModalProps {
@@ -9,6 +9,7 @@ interface CuentaFolioModalProps {
   onClose: () => void;
   onRegistrarAbono?: (estadiaId: number) => void;
   onEmitirFactura?: (estadiaId: number) => void;
+  onRegistrarConsumo?: (estadiaId: number) => void;
 }
 
 export function CuentaFolioModal({
@@ -17,6 +18,7 @@ export function CuentaFolioModal({
   onClose,
   onRegistrarAbono,
   onEmitirFactura,
+  onRegistrarConsumo,
 }: CuentaFolioModalProps) {
   if (!folio) return null;
 
@@ -32,7 +34,7 @@ export function CuentaFolioModal({
       isOpen={isOpen}
       onClose={onClose}
       title={`Folio de Cuenta · Estadía ${folio.codigo_estadia}`}
-      subtitle="Centralización de cargos de hospedaje, consumos y recaudos (RF-019)"
+      subtitle="Centralización de cargos de hospedaje, consumos y recaudos"
       maxWidth="lg"
       icon={<FileSpreadsheet className="w-5 h-5 text-red-600" />}
     >
@@ -165,8 +167,31 @@ export function CuentaFolioModal({
 
         {/* Resumen Financiero Consolidado */}
         <div className="p-4 bg-slate-50/90 rounded-2xl border border-slate-200/80 space-y-2">
+          {(() => {
+            const iva = folio.iva ?? folio.hospedaje?.iva ?? 0;
+            const impo = folio.impuesto_consumo ?? folio.hospedaje?.impuesto_consumo ?? 0;
+            const subtotal = folio.subtotal ?? (folio.total_cargos - iva - impo);
+
+            return (
+              <div className="space-y-1.5 text-xs text-slate-600 pb-2 border-b border-slate-200/70">
+                <div className="flex justify-between">
+                  <span>Subtotal (Base gravable):</span>
+                  <span className="font-mono font-medium text-slate-800">${subtotal.toLocaleString('es-CO')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>IVA (19% o exento):</span>
+                  <span className="font-mono font-medium text-slate-800">${iva.toLocaleString('es-CO')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Impuesto Nacional al Consumo:</span>
+                  <span className="font-mono font-medium text-slate-800">${impo.toLocaleString('es-CO')}</span>
+                </div>
+              </div>
+            );
+          })()}
+
           <div className="flex justify-between text-slate-600">
-            <span>Total Cargos (Hospedaje + Consumos):</span>
+            <span>Total Cargos (Total liquidado):</span>
             <span className="font-mono font-semibold text-slate-900">
               ${folio.total_cargos.toLocaleString('es-CO')}
             </span>
@@ -220,6 +245,20 @@ export function CuentaFolioModal({
           </div>
 
           <div className="flex items-center gap-2">
+            {onRegistrarConsumo && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  onClose();
+                  onRegistrarConsumo(folio.estadia_id);
+                }}
+                icono={<ShoppingCart className="w-3.5 h-3.5" />}
+              >
+                Cargar Consumo
+              </Button>
+            )}
+
             {tieneSaldo && onRegistrarAbono && (
               <Button
                 variant="primary"

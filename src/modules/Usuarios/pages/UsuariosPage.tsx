@@ -49,7 +49,7 @@ export function UsuariosPage() {
             Control de Usuarios, Roles & Seguridad
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Administración de cuentas de acceso, roles asignados y credenciales seguras (RF-023, RN-014).
+            Administración de cuentas de acceso, roles asignados y credenciales seguras.
           </p>
         </div>
 

@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
-import { BedDouble, Save } from 'lucide-react';
-import type { CrearHabitacionDTO, TipoHabitacion } from '../types/habitacion.types';
+import { BedDouble, Save, Edit3 } from 'lucide-react';
+import type { CrearHabitacionDTO, TipoHabitacion, Habitacion } from '../types/habitacion.types';
 
 interface CrearHabitacionModalProps {
   isOpen: boolean;
+  habitacion?: Habitacion | null;
   onClose: () => void;
   onSubmit: (datos: CrearHabitacionDTO) => Promise<boolean>;
 }
 
 export function CrearHabitacionModal({
   isOpen,
+  habitacion,
   onClose,
   onSubmit,
 }: CrearHabitacionModalProps) {
@@ -26,6 +28,30 @@ export function CrearHabitacionModal({
   const [precioNoche, setPrecioNoche] = useState<number>(70000);
   const [observaciones, setObservaciones] = useState('');
 
+  React.useEffect(() => {
+    if (habitacion && isOpen) {
+      setNumero(habitacion.numero);
+      setPiso(habitacion.piso);
+      setTipo(habitacion.tipo);
+      setCamas(habitacion.camas || '1 Cama');
+      setCapacidadMax(habitacion.capacidadMax || 2);
+      setTieneAire(habitacion.tieneAire);
+      setTieneVentilador(habitacion.tieneVentilador);
+      setPrecioNoche(habitacion.precioNoche || 70000);
+      setObservaciones(habitacion.observaciones || '');
+    } else if (!habitacion && isOpen) {
+      setNumero('');
+      setPiso(1);
+      setTipo('Estándar');
+      setCamas('1 Cama Doble');
+      setCapacidadMax(2);
+      setTieneAire(true);
+      setTieneVentilador(false);
+      setPrecioNoche(70000);
+      setObservaciones('');
+    }
+  }, [habitacion, isOpen]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!numero.trim()) return;
@@ -33,19 +59,19 @@ export function CrearHabitacionModal({
     setCargando(true);
     const exito = await onSubmit({
       numero: numero.trim(),
-      piso,
+      piso_id: piso,
       tipo,
-      camas,
-      capacidadMax,
-      tieneAire,
-      tieneVentilador,
-      precioNoche,
+      detalle_camas: camas,
+      capacidad_maxima: capacidadMax,
+      tiene_aire: tieneAire,
+      tiene_ventilador: tieneVentilador,
+      precio_noche_base: precioNoche,
+      estado: 'disponible',
       observaciones: observaciones.trim() || undefined,
     });
     setCargando(false);
     if (exito) {
-      setNumero('');
-      setObservaciones('');
+      onClose();
     }
   };
 
@@ -53,10 +79,10 @@ export function CrearHabitacionModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Crear Nueva Habitación"
-      subtitle="Registro de unidad de alojamiento en el PMS (RF-001)"
+      title={habitacion ? 'Editar Habitación' : 'Crear Nueva Habitación'}
+      subtitle={habitacion ? `Modificar datos de la habitación ${habitacion.numero}` : 'Registro de unidad de alojamiento en el PMS'}
       maxWidth="md"
-      icon={<BedDouble className="w-5 h-5 text-red-600" />}
+      icon={habitacion ? <Edit3 className="w-5 h-5 text-red-600" /> : <BedDouble className="w-5 h-5 text-red-600" />}
     >
       <form onSubmit={handleSubmit} className="space-y-4 text-xs text-slate-700">
         <div className="grid grid-cols-2 gap-3">
@@ -210,7 +236,7 @@ export function CrearHabitacionModal({
             cargando={cargando}
             icono={<Save className="w-4 h-4" />}
           >
-            Registrar Habitación
+            {habitacion ? 'Guardar Cambios' : 'Registrar Habitación'}
           </Button>
         </div>
       </form>

@@ -8,6 +8,7 @@ import {
   Building2,
   FileCheck2,
   RefreshCw,
+  Users,
 } from 'lucide-react';
 import { useReportes } from '../hooks/useReportes';
 import { OcupacionTab } from '../components/OcupacionTab';
@@ -17,6 +18,7 @@ import { PoliciaTraTab } from '../components/PoliciaTraTab';
 import { SireTab } from '../components/SireTab';
 import { MincitTab } from '../components/MincitTab';
 import { AuditoriaDiariaTab } from '../components/AuditoriaDiariaTab';
+import { DirectorioHuespedesTab } from '../components/DirectorioHuespedesTab';
 import { Button, Loading, ErrorState } from '@/components';
 import type { ReportesTab } from '../types/reporte.types';
 
@@ -24,8 +26,6 @@ export function ReportesPage() {
   const {
     tabActivo,
     setTabActivo,
-    filtros,
-    setFiltros,
     cargando,
     error,
     ocupacionData,
@@ -35,12 +35,10 @@ export function ReportesPage() {
     sireData,
     mincitData,
     auditoriaData,
+    refreshTrigger,
     recargar,
     actualizarSire,
     ejecutarCierreAuditoria,
-    exportarPoliciaCsv,
-    exportarSireCsv,
-    exportarDianCsv,
   } = useReportes();
 
   const tabs: { id: ReportesTab; label: string; icon: React.ReactNode; tag?: string }[] = [
@@ -82,6 +80,11 @@ export function ReportesPage() {
       label: 'Cierre Diario',
       icon: <FileCheck2 className="w-4 h-4" />,
       tag: 'Night Audit',
+    },
+    {
+      id: 'directorio',
+      label: 'Directorio Huéspedes',
+      icon: <Users className="w-4 h-4" />,
     },
   ];
 
@@ -160,49 +163,37 @@ export function ReportesPage() {
           )}
 
           {tabActivo === 'ingresos' && (
-            <IngresosTab
-              data={ingresosData}
-              filtroPeriodo={filtros.filtroPeriodo}
-              onCambiarFiltroPeriodo={(p) => setFiltros({ ...filtros, filtroPeriodo: p })}
-            />
+            <IngresosTab data={ingresosData} />
           )}
 
           {tabActivo === 'dian' && (
-            <DianTab
-              data={dianData}
-              onExportarCsv={exportarDianCsv}
-            />
+            <DianTab data={dianData} />
           )}
 
           {tabActivo === 'policia' && (
-            <PoliciaTraTab
-              data={policiaTraData}
-              onExportarCsv={exportarPoliciaCsv}
-            />
+            <PoliciaTraTab data={policiaTraData} />
           )}
 
           {tabActivo === 'sire' && (
             <SireTab
               data={sireData}
-              onExportarCsv={exportarSireCsv}
-              onActualizarSire={actualizarSire}
+              onActualizarEstado={actualizarSire}
             />
           )}
 
           {tabActivo === 'mincit' && (
-            <MincitTab
-              data={mincitData}
-              mesSeleccionado={filtros.mes}
-              anioSeleccionado={filtros.anio}
-              onCambiarPeriodo={(mes, anio) => setFiltros({ ...filtros, mes, anio })}
-            />
+            <MincitTab data={mincitData} />
           )}
 
           {tabActivo === 'auditoria' && (
             <AuditoriaDiariaTab
               data={auditoriaData}
-              onEjecutarCierre={ejecutarCierreAuditoria}
+              onCerrarAuditoria={ejecutarCierreAuditoria}
             />
+          )}
+
+          {tabActivo === 'directorio' && (
+            <DirectorioHuespedesTab refreshTrigger={refreshTrigger} />
           )}
         </div>
       )}

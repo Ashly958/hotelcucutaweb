@@ -1,4 +1,5 @@
 import { api } from '@/services/api';
+import type { RespuestaApi } from '@/types/api';
 import type {
   FiltroReportes,
   ReporteOcupacionResponse,

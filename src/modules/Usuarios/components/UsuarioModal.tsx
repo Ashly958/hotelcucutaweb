@@ -65,7 +65,7 @@ export function UsuarioModal({
       isOpen={isOpen}
       onClose={onClose}
       title={usuario ? 'Editar Usuario del Sistema' : 'Crear Nuevo Usuario'}
-      subtitle="Asignación de credenciales y delimitación de roles operativos (RF-023)"
+      subtitle="Asignación de credenciales y delimitación de roles operativos"
       maxWidth="md"
       icon={<User className="w-5 h-5 text-red-600" />}
     >

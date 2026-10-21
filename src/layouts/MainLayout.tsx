@@ -10,6 +10,9 @@ import {
   Users,
   Building2,
   BarChart3,
+  Zap,
+  CalendarDays,
+  Car,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -45,6 +48,12 @@ const NAV_ITEMS: NavItem[] = [
     roles: ['ADMIN', 'RECEPCION', 'LAVANDERIA', 'MANTENIMIENTO'],
   },
   {
+    to: '/reservas',
+    label: 'Reservas & Rack',
+    icon: CalendarDays,
+    roles: ['ADMIN', 'RECEPCION'],
+  },
+  {
     to: '/estadias',
     label: 'Estadías & Check-In',
     icon: ClipboardList,
@@ -54,6 +63,12 @@ const NAV_ITEMS: NavItem[] = [
     to: '/facturacion',
     label: 'Caja & Facturación',
     icon: CreditCard,
+    roles: ['ADMIN', 'RECEPCION'],
+  },
+  {
+    to: '/parqueadero',
+    label: 'Parqueadero',
+    icon: Car,
     roles: ['ADMIN', 'RECEPCION'],
   },
   {
@@ -78,6 +93,12 @@ const NAV_ITEMS: NavItem[] = [
     to: '/reportes',
     label: 'Reportes & Estadísticas',
     icon: BarChart3,
+    roles: ['ADMIN', 'RECEPCION'],
+  },
+  {
+    to: '/servicios-publicos',
+    label: 'Servicios Públicos',
+    icon: Zap,
     roles: ['ADMIN', 'RECEPCION'],
   },
   {

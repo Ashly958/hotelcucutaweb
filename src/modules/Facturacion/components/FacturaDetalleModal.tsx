@@ -1,18 +1,21 @@
 import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
-import { FileText, Printer, CheckCircle2, Clock, DollarSign } from 'lucide-react';
+import { FileText, Printer, CheckCircle2, Clock, DollarSign, MessageCircle } from 'lucide-react';
+import { abrirWhatsApp, formatearMensajeFactura } from '@/utils/whatsappUtils';
 import type { Factura } from '../types/facturacion.types';
 
 interface FacturaDetalleModalProps {
   isOpen: boolean;
   factura: Factura | null;
   onClose: () => void;
+  onRemitirDian?: (id: number) => Promise<boolean>;
 }
 
 export function FacturaDetalleModal({
   isOpen,
   factura,
   onClose,
+  onRemitirDian,
 }: FacturaDetalleModalProps) {
   if (!factura) return null;
 
@@ -38,7 +41,7 @@ export function FacturaDetalleModal({
       maxWidth="lg"
       icon={<FileText className="w-5 h-5 text-red-600" />}
     >
-      <div className="space-y-4 text-xs text-slate-700">
+      <div className="space-y-4 text-xs text-slate-700 print-factura-area">
         {/* Encabezado Hotel Cúcuta */}
         <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div>
@@ -77,6 +80,11 @@ export function FacturaDetalleModal({
                 </span>
               )}
             </span>
+            {factura.cufe && (
+              <span className="text-[10px] text-slate-500 block mt-1 break-all">
+                CUFE: {factura.cufe}
+              </span>
+            )}
           </div>
         </div>
 
@@ -110,29 +118,64 @@ export function FacturaDetalleModal({
                 <th className="py-2.5 px-3 font-medium text-center">Cant.</th>
                 <th className="py-2.5 px-3.5 font-medium text-right">V. Unitario</th>
                 <th className="py-2.5 px-3.5 font-medium text-right">Subtotal</th>
+                <th className="py-2.5 px-3.5 font-medium text-center">Pagado</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {factura.detalles && factura.detalles.length > 0 ? (
-                factura.detalles.map((d, i) => {
-                  const concepto = d.concepto || d.descripcion || 'Servicio de Hospedaje';
-                  const valorUnit = d.valor_unitario || d.precio_unitario || 0;
-                  return (
-                    <tr key={i}>
-                      <td className="py-2.5 px-3.5 text-slate-800">{concepto}</td>
-                      <td className="py-2.5 px-3 text-center">{d.cantidad}</td>
-                      <td className="py-2.5 px-3.5 text-right font-mono">
-                        ${valorUnit.toLocaleString('es-CO')}
-                      </td>
-                      <td className="py-2.5 px-3.5 text-right font-mono font-semibold text-slate-900">
-                        ${d.subtotal.toLocaleString('es-CO')}
-                      </td>
-                    </tr>
-                  );
-                })
+                (() => {
+                  let fondoAbonos = totalPagado;
+                  return factura.detalles.map((d, i) => {
+                    const concepto = d.concepto || d.descripcion || 'Servicio de Hospedaje';
+                    const valorUnit = d.valor_unitario || d.precio_unitario || 0;
+                    const subtotal = d.subtotal || 0;
+
+                    let estadoItem: 'si' | 'no' | 'parcial' = 'no';
+                    if (esPagadaTotal || fondoAbonos >= subtotal) {
+                      estadoItem = 'si';
+                      fondoAbonos = Math.max(0, fondoAbonos - subtotal);
+                    } else if (fondoAbonos > 0) {
+                      estadoItem = 'parcial';
+                      fondoAbonos = 0;
+                    } else {
+                      estadoItem = 'no';
+                    }
+
+                    return (
+                      <tr key={i}>
+                        <td className="py-2.5 px-3.5 text-slate-800 font-medium">{concepto}</td>
+                        <td className="py-2.5 px-3 text-center">{d.cantidad}</td>
+                        <td className="py-2.5 px-3.5 text-right font-mono">
+                          ${valorUnit.toLocaleString('es-CO')}
+                        </td>
+                        <td className="py-2.5 px-3.5 text-right font-mono font-semibold text-slate-900">
+                          ${subtotal.toLocaleString('es-CO')}
+                        </td>
+                        <td className="py-2.5 px-3.5 text-center">
+                          {estadoItem === 'si' ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              Sí
+                            </span>
+                          ) : estadoItem === 'parcial' ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200/80">
+                              <DollarSign className="w-3 h-3 text-sky-600" />
+                              Parcial
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200/80">
+                              <Clock className="w-3 h-3 text-red-600" />
+                              No
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  });
+                })()
               ) : (
                 <tr>
-                  <td className="py-2.5 px-3.5" colSpan={4}>
+                  <td className="py-2.5 px-3.5 text-slate-500" colSpan={5}>
                     Servicios de hospedaje y consumos consolidados
                   </td>
                 </tr>
@@ -167,16 +210,32 @@ export function FacturaDetalleModal({
           </div>
         )}
 
-        {/* Totales */}
+        {/* Totales con Desglose Fiscal Exacto */}
         <div className="bg-slate-50/90 p-4 rounded-2xl border border-slate-200/80 space-y-1.5 text-xs">
-          <div className="flex justify-between text-slate-600">
-            <span>Subtotal:</span>
-            <span className="font-mono">${(factura.subtotal || total).toLocaleString('es-CO')}</span>
-          </div>
-          <div className="flex justify-between text-slate-600">
-            <span>IVA (0% Régimen Hotelero / Exento):</span>
-            <span className="font-mono">$0</span>
-          </div>
+          {(() => {
+            const ivaFactura = factura.iva || 0;
+            const impoFactura = factura.impuesto_consumo || 0;
+            const subtotalFactura = factura.subtotal !== undefined
+              ? factura.subtotal
+              : Math.max(0, total - ivaFactura - impoFactura);
+
+            return (
+              <>
+                <div className="flex justify-between text-slate-600">
+                  <span>Subtotal (Base gravable):</span>
+                  <span className="font-mono font-medium">${subtotalFactura.toLocaleString('es-CO')}</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>IVA (19% o exento según régimen):</span>
+                  <span className="font-mono font-medium">${ivaFactura.toLocaleString('es-CO')}</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Impuesto Nacional al Consumo:</span>
+                  <span className="font-mono font-medium">${impoFactura.toLocaleString('es-CO')}</span>
+                </div>
+              </>
+            );
+          })()}
           <div className="flex justify-between font-bold text-sm text-slate-900 pt-1.5 border-t border-slate-200">
             <span>TOTAL FACTURADO:</span>
             <span className="font-mono">${total.toLocaleString('es-CO')} COP</span>
@@ -185,28 +244,65 @@ export function FacturaDetalleModal({
             <span>Total Recaudado / Pagado:</span>
             <span className="font-mono">${totalPagado.toLocaleString('es-CO')} COP</span>
           </div>
-          {saldo > 0 && (
+          {saldo > 0 ? (
             <div className="flex justify-between text-red-600 font-bold pt-1 border-t border-slate-200/60">
               <span>Saldo Pendiente por Pagar:</span>
               <span className="font-mono">${saldo.toLocaleString('es-CO')} COP</span>
+            </div>
+          ) : (
+            <div className="flex justify-between text-emerald-700 font-bold pt-1 border-t border-slate-200/60">
+              <span>Saldo Pendiente:</span>
+              <span className="font-mono">$0 COP (Al día)</span>
             </div>
           )}
         </div>
 
         {/* Acciones */}
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 no-print">
           <Button variant="outline" size="md" onClick={onClose}>
             Cerrar
           </Button>
 
-          <Button
-            variant="primary"
-            size="md"
-            onClick={handleImprimir}
-            icono={<Printer className="w-4 h-4" />}
-          >
-            Imprimir Factura
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="md"
+              onClick={() => {
+                const msg = formatearMensajeFactura({
+                  codigoFactura: codigo,
+                  clienteNombre: factura.cliente_nombre || 'Estimado Huésped',
+                  total,
+                  totalPagado,
+                  saldo,
+                  cufe: factura.cufe,
+                });
+                abrirWhatsApp(factura.cliente_telefono, msg);
+              }}
+              className="text-emerald-700 border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400"
+              icono={<MessageCircle className="w-4 h-4 text-emerald-600" />}
+            >
+              Enviar WhatsApp
+            </Button>
+
+            {!factura.cufe && onRemitirDian && (
+              <Button
+                variant="outline"
+                size="md"
+                onClick={() => onRemitirDian(factura.id)}
+                className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+              >
+                Remitir a la DIAN (Mock)
+              </Button>
+            )}
+            <Button
+              variant="primary"
+              size="md"
+              onClick={handleImprimir}
+              icono={<Printer className="w-4 h-4" />}
+            >
+              Imprimir Factura
+            </Button>
+          </div>
         </div>
       </div>
     </Modal>

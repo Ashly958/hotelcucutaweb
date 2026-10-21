@@ -65,4 +65,25 @@ export const informacionHotelService = {
       return mapearInformacionHotel(res.data.data);
     }
   },
+
+  async obtenerPreciosOnboarding(): Promise<any[]> {
+    const res = await api.get<RespuestaApi<any>>('/habitaciones/precios-onboarding');
+    return res.data.data || [];
+  },
+
+  async actualizarPreciosOnboarding(precios: any[]): Promise<any[]> {
+    const res = await api.put<RespuestaApi<any>>('/habitaciones/precios-onboarding', { precios });
+    return res.data.data || [];
+  },
+
+  async subirImagenHabitacion(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append('imagen', file);
+    const res = await api.post<RespuestaApi<{ url: string }>>('/habitaciones/upload-imagen', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return res.data.data.url;
+  }
 };

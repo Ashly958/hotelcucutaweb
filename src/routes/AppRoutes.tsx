@@ -9,6 +9,9 @@ import { UsuariosPage } from '@/modules/Usuarios/pages/UsuariosPage';
 import { InformacionHotelPage } from '@/modules/InformacionHotel/pages/InformacionHotelPage';
 import { OnboardingPage } from '@/modules/Onboarding/pages/OnboardingPage';
 import { ReportesPage } from '@/modules/Reportes/pages/ReportesPage';
+import { ServiciosPublicosPage } from '@/modules/ServiciosPublicos/pages/ServiciosPublicosPage';
+import { ReservasPage } from '@/modules/Reservas/pages/ReservasPage';
+import { ParqueaderoPage } from '@/modules/Parqueadero/pages/ParqueaderoPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { MainLayout } from '@/layouts/MainLayout';
@@ -47,6 +50,17 @@ export function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <HabitacionesPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/reservas"
+        element={
+          <ProtectedRoute rolesPermitidos={['ADMIN', 'RECEPCION']}>
+            <MainLayout>
+              <ReservasPage />
             </MainLayout>
           </ProtectedRoute>
         }
@@ -125,6 +139,28 @@ export function AppRoutes() {
           <ProtectedRoute rolesPermitidos={['ADMIN', 'RECEPCION']}>
             <MainLayout>
               <ReportesPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/servicios-publicos"
+        element={
+          <ProtectedRoute rolesPermitidos={['ADMIN', 'RECEPCION']}>
+            <MainLayout>
+              <ServiciosPublicosPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/parqueadero"
+        element={
+          <ProtectedRoute rolesPermitidos={['ADMIN', 'RECEPCION']}>
+            <MainLayout>
+              <ParqueaderoPage />
             </MainLayout>
           </ProtectedRoute>
         }
